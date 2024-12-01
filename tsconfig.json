@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "Node16",
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "moduleResolution": "Node16",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "removeComments": true
+  },
+  "include": ["**/*"],
+  "exclude": [
+    "node_modules",
+    "coverage",
+    ".build",
+    ".serverless",
+    "_optimize",
+    "_warmup",
+    "bin"
+  ]
+}
