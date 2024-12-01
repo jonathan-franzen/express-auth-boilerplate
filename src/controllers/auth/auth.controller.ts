@@ -1,7 +1,6 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { JwtService } from '@/services/jwt/jwt.service.js';
-import { EncryptionService } from '@/services/encryption/encryption.service.js';
 import { Prisma, Role, User } from '@prisma/client';
 import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
 import { CustomError } from '@/utils/custom-error.js';
@@ -10,11 +9,12 @@ import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
+import { BcryptService } from '@/services/bcrypt/bcrypt.service.js';
 
 export class AuthController {
 	constructor(
 		private readonly jwtService: JwtService,
-		private readonly encryptionService: EncryptionService,
+		private readonly encryptionService: BcryptService,
 		private readonly userPrismaService: UserPrismaService,
 		private readonly userTokenPrismaService: UserTokenPrismaService,
 	) {}

@@ -1,6 +1,6 @@
 import { prisma } from '@/config/prisma.config.js';
 import { Prisma } from '@prisma/client';
-import { encryptionService } from '@/services/encryption/index.js';
+import { bcryptService } from '@/services/bcrypt/index.js';
 
 function getUsers(): Prisma.UserCreateInput[] {
 	return [
@@ -17,7 +17,7 @@ function getUsers(): Prisma.UserCreateInput[] {
 async function seed(): Promise<void> {
 	const users: Prisma.UserCreateInput[] = getUsers();
 	users.map(async (user: Prisma.UserCreateInput): Promise<void> => {
-		const hashedPassword: string = await encryptionService.hash(user.password);
+		const hashedPassword: string = await bcryptService.hash(user.password);
 		await prisma.user.create({
 			data: {
 				email: user.email,
