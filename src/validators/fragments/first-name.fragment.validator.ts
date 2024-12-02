@@ -1,5 +1,5 @@
-import { body, ValidationChain } from 'express-validator';
 import { capitalizeSanitizer } from '@/validators/sanitizers/capitalize.sanitizer.js';
+import { body, ValidationChain } from 'express-validator';
 
 export function firstNameFragmentValidator(): ValidationChain[] {
 	return [

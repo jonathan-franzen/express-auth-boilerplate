@@ -1,15 +1,13 @@
-import { Prisma, UserToken } from '@prisma/client';
 import { prisma } from '@/config/prisma.config.js';
+import { Prisma, UserToken } from '@prisma/client';
+
 import BatchPayload = Prisma.BatchPayload;
 import UserTokenUncheckedCreateInput = Prisma.UserTokenUncheckedCreateInput;
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 
 export class UserTokenPrismaService {
-	async getUserTokenByToken(
-		token: string,
-		include: UserTokenInclude,
-	): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
+	async getUserTokenByToken(token: string, include: UserTokenInclude): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
 		return prisma.userToken.findUnique({
 			where: {
 				token,
@@ -18,9 +16,7 @@ export class UserTokenPrismaService {
 		});
 	}
 
-	async createUserToken(
-		userTokenCreateInput: UserTokenUncheckedCreateInput,
-	): Promise<UserToken> {
+	async createUserToken(userTokenCreateInput: UserTokenUncheckedCreateInput): Promise<UserToken> {
 		return prisma.userToken.create({
 			data: userTokenCreateInput,
 		});

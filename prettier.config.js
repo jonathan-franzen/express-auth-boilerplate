@@ -9,9 +9,10 @@ const config = {
 	useTabs: true,
 	printWidth: 160,
 	importOrder: ['^@core/(.*)$', '^@server/(.*)$', '^@ui/(.*)$', '^[./]'],
-	importOrderSeparation: true,
-	importOrderSortSpecifiers: true,
-	plugins: ['@trivago/prettier-plugin-sort-imports'],
+	importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+	importOrderTypeScriptVersion: '5.0.0',
+	importOrderCaseSensitive: false,
+	plugins: ['@ianvs/prettier-plugin-sort-imports'],
 };
 
 export default config;

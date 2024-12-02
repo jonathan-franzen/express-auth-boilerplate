@@ -1,8 +1,8 @@
-import passport, { PassportStatic } from 'passport';
-import { Strategy, ExtractJwt, VerifiedCallback } from 'passport-jwt';
 import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import { User } from '@prisma/client';
 import { userPrismaService } from '@/services/prisma/user/index.js';
+import { User } from '@prisma/client';
+import passport, { PassportStatic } from 'passport';
+import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 
 export class AuthService {
 	private readonly jwtOptions: {
@@ -21,10 +21,7 @@ export class AuthService {
 		passport.use(new Strategy(this.jwtOptions, this.verifyCallback.bind(this)));
 	}
 
-	private async verifyCallback(
-		jwt_payload: { userInfo?: { email?: string } },
-		done: VerifiedCallback,
-	): Promise<void> {
+	private async verifyCallback(jwt_payload: { userInfo?: { email?: string } }, done: VerifiedCallback): Promise<void> {
 		const email: string | undefined = jwt_payload?.userInfo?.email;
 
 		if (!email) {

@@ -1,5 +1,6 @@
-import { Prisma, User } from '@prisma/client';
 import { prisma } from '@/config/prisma.config.js';
+import { Prisma, User } from '@prisma/client';
+
 import UserCreateInput = Prisma.UserCreateInput;
 import UserOmit = Prisma.UserOmit;
 import UserGetPayload = Prisma.UserGetPayload;
@@ -22,18 +23,13 @@ export class UserPrismaService {
 		});
 	}
 
-	async getAllUsers(
-		omit: UserOmit,
-	): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
+	async getAllUsers(omit: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
 		return prisma.user.findMany({
 			omit: omit,
 		});
 	}
 
-	async updateUserByEmail(
-		email: string,
-		data: UserUpdateInput,
-	): Promise<User | null> {
+	async updateUserByEmail(email: string, data: UserUpdateInput): Promise<User | null> {
 		return prisma.user.update({
 			data: data,
 			where: {

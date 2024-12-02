@@ -1,10 +1,8 @@
-import { ResetPasswordToken } from '@prisma/client';
 import { prisma } from '@/config/prisma.config.js';
+import { ResetPasswordToken } from '@prisma/client';
 
 export class ResetPasswordTokenPrismaService {
-	async getResetPasswordToken(
-		token: string,
-	): Promise<ResetPasswordToken | null> {
+	async getResetPasswordToken(token: string): Promise<ResetPasswordToken | null> {
 		return prisma.resetPasswordToken.findUnique({
 			where: {
 				token,
@@ -12,10 +10,7 @@ export class ResetPasswordTokenPrismaService {
 		});
 	}
 
-	async createOrUpdateResetPasswordToken(
-		token: string,
-		userId: string,
-	): Promise<ResetPasswordToken> {
+	async createOrUpdateResetPasswordToken(token: string, userId: string): Promise<ResetPasswordToken> {
 		return prisma.resetPasswordToken.upsert({
 			where: {
 				userId,

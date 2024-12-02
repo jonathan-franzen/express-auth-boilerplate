@@ -1,13 +1,9 @@
-import { CustomError } from '@/utils/custom-error.js';
-import { Request, Response } from 'express';
-import logger from '@/utils/logger.js';
 import { ErrorHandlerMiddlewareExpressInterface } from '@/interfaces/express/error-handler-middleware.express.interface.js';
+import { CustomError } from '@/utils/custom-error.js';
+import logger from '@/utils/logger.js';
+import { Request, Response } from 'express';
 
-export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (
-	err: Error,
-	req: Request,
-	res: Response,
-): Response | void => {
+export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (err: Error, req: Request, res: Response): Response | void => {
 	if (err instanceof CustomError) {
 		return res.status(err.statusCode).json({ message: err.message });
 	} else {
@@ -19,8 +15,6 @@ export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (
 				stack: err.stack,
 			},
 		});
-		return res
-			.status(500)
-			.json({ message: err.message || 'Internal Server Error.' });
+		return res.status(500).json({ message: err.message || 'Internal Server Error.' });
 	}
 };

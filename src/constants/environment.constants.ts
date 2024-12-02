@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv';
 import process from 'process';
+import * as dotenv from 'dotenv';
 
 dotenv.config({ path: process.env.APP_ENV == 'prod' ? '.env' : '.env.local' });
 

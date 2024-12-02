@@ -15,8 +15,7 @@ export function passwordFragmentValidator(): ValidationChain[] {
 				minSymbols: 0,
 			})
 			.withMessage({
-				message:
-					'Password must contain at least one uppercase letter, one number, and be at least 8 characters long.',
+				message: 'Password must contain at least one uppercase letter, one number, and be at least 8 characters long.',
 				status: 400,
 			}),
 	];

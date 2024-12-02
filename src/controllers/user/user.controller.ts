@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
 import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
-import { Prisma, User } from '@prisma/client';
 import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
+import { Prisma, User } from '@prisma/client';
+import { Request, Response } from 'express';
+
 import UserGetPayload = Prisma.UserGetPayload;
 import UserOmit = Prisma.UserOmit;
 
@@ -29,8 +30,7 @@ export class UserController {
 	}
 
 	async getAllUsers(res: Response): Promise<Response> {
-		const users: UserGetPayload<{ omit: UserOmit }>[] | null =
-			await this.userPrismaService.getAllUsers({ password: true, roles: true });
+		const users: UserGetPayload<{ omit: UserOmit }>[] | null = await this.userPrismaService.getAllUsers({ password: true, roles: true });
 
 		if (!users) {
 			return res.status(204).json({ message: 'No users found.' });

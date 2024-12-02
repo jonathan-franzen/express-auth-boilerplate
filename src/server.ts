@@ -1,11 +1,11 @@
-import express, { Express } from 'express';
-import router from '@/routes/router.js';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import { loggerMiddleware } from '@/middlewares/logger.middleware.js';
-import logger from '@/utils/logger.js';
-import { authService } from '@/services/auth/index.js';
 import { PORT } from '@/constants/environment.constants.js';
+import { loggerMiddleware } from '@/middlewares/logger.middleware.js';
+import router from '@/routes/router.js';
+import { authService } from '@/services/auth/index.js';
+import logger from '@/utils/logger.js';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express, { Express } from 'express';
 
 const app: Express = express();
 

@@ -1,8 +1,9 @@
 import { prisma } from '@/config/prisma.config.js';
-import { Prisma } from '@prisma/client';
 import { bcryptService } from '@/services/bcrypt/index.js';
-import UserCreateInput = Prisma.UserCreateInput;
 import logger from '@/utils/logger.js';
+import { Prisma } from '@prisma/client';
+
+import UserCreateInput = Prisma.UserCreateInput;
 
 function getUsers(): Prisma.UserCreateInput[] {
 	return [
@@ -33,9 +34,7 @@ async function seed(): Promise<void> {
 	const users: UserCreateInput[] = getUsers();
 
 	try {
-		await Promise.all(
-			users.map((user: UserCreateInput): Promise<void> => createUser(user)),
-		);
+		await Promise.all(users.map((user: UserCreateInput): Promise<void> => createUser(user)));
 		logger.info('Seeding completed successfully.');
 	} catch (error) {
 		logger.error('Error during database seeding:', error);

@@ -1,19 +1,11 @@
+import { AsyncMiddlewareExpressInterface } from '@/interfaces/express/async-middleware.express.interface.js';
+import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
 import { NextFunction, Request, Response } from 'express';
-import { Result, ValidationChain, ValidationError } from 'express-validator';
-import { validationResult } from 'express-validator';
-import { checkExact } from 'express-validator';
-import { CustomError } from '@/utils/custom-error.js';
-import { AsyncMiddlewareExpressInterface } from '@/interfaces/express/async-middleware.express.interface.js';
+import { checkExact, Result, ValidationChain, ValidationError, validationResult } from 'express-validator';
 
-export function expressValidatorMiddleware(
-	validators: ValidationChain[],
-): AsyncMiddlewareExpressInterface {
-	return async (
-		req: Request,
-		_res: Response,
-		next: NextFunction,
-	): Promise<void> => {
+export function expressValidatorMiddleware(validators: ValidationChain[]): AsyncMiddlewareExpressInterface {
+	return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
 		// Throw an error if there are too many fields in the request
 		await checkExact(validators, {
 			message: { message: 'Too many fields specified.', status: 400 },
