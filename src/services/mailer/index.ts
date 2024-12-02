@@ -10,6 +10,6 @@ const transport = nodemailer.createTransport(
 			}
 		: {},
 );
-const templatesPath: string = path.join(import.meta.dirname, '..', '..', 'email-templates');
+const templatesPath: string = path.join(process.cwd(), 'src', 'email-templates');
 
 export const mailerService = new MailerService(transport, templatesPath);
