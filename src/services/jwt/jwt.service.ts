@@ -7,18 +7,21 @@ import { Prisma, Role } from '@prisma/client';
 import logger from '@/utils/logger.js';
 import { CustomError } from '@/utils/custom-error.js';
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
+import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 
 export class JwtService {
 	constructor(
 		private readonly userTokenPrismaService: UserTokenPrismaService,
+		private readonly resetPasswordTokenPrismaService: ResetPasswordTokenPrismaService,
 	) {}
 
-	signAccessToken(email: string, roles: Role[]): string {
+	signAccessToken(id: string, email: string, roles: Role[]): string {
 		return jwt.sign(
 			{
 				userInfo: {
-					email: email,
-					roles: roles,
+					id,
+					email,
+					roles,
 				},
 			},
 			ACCESS_TOKEN_SECRET,
@@ -27,7 +30,7 @@ export class JwtService {
 	}
 
 	signRefreshToken(email: string): string {
-		return jwt.sign({ email: email }, REFRESH_TOKEN_SECRET, {
+		return jwt.sign({ email }, REFRESH_TOKEN_SECRET, {
 			expiresIn: '2m',
 		});
 	}
@@ -44,7 +47,7 @@ export class JwtService {
 				err: VerifyErrors | null,
 				decoded: JwtPayload | string | undefined,
 			): Promise<void> => {
-				if (err || typeof decoded !== 'object') {
+				if (err || typeof decoded !== 'object' || !decoded.email) {
 					logger.warning({
 						message: 'Token expired, or not valid.',
 					});
@@ -61,6 +64,98 @@ export class JwtService {
 
 					throw new CustomError('Token expired, or not valid.', 403);
 				}
+				await callback(decoded);
+			},
+		);
+	}
+
+	signVerifyEmailToken(email: string): string {
+		return jwt.sign(
+			{
+				verifyEmail: {
+					email: email,
+				},
+			},
+			ACCESS_TOKEN_SECRET,
+			{ expiresIn: '1h' },
+		);
+	}
+
+	verifyVerifyEmailToken(
+		token: string,
+		callback: (decoded: JwtPayload) => Promise<string | void>,
+	): string | void {
+		return jwt.verify(
+			token,
+			ACCESS_TOKEN_SECRET,
+			async (
+				err: VerifyErrors | null,
+				decoded: JwtPayload | string | undefined,
+			): Promise<void> => {
+				if (err || typeof decoded !== 'object' || !decoded.verifyEmail.email) {
+					logger.warning({
+						message: 'Verify email token expired, or not valid.',
+					});
+
+					throw new CustomError(
+						'Verify email token expired, or not valid.',
+						401,
+					);
+				}
+
+				await callback(decoded);
+			},
+		);
+	}
+
+	signResetPasswordToken(email: string): string {
+		return jwt.sign(
+			{
+				resetPassword: {
+					email: email,
+				},
+			},
+			ACCESS_TOKEN_SECRET,
+			{ expiresIn: '1h' },
+		);
+	}
+
+	verifyResetPasswordToken(
+		token: string,
+		callback: (decoded: JwtPayload) => Promise<string | void>,
+	): string | void {
+		return jwt.verify(
+			token,
+			ACCESS_TOKEN_SECRET,
+			async (
+				err: VerifyErrors | null,
+				decoded: JwtPayload | string | undefined,
+			): Promise<void> => {
+				if (
+					err ||
+					typeof decoded !== 'object' ||
+					!decoded.resetPassword.email
+				) {
+					logger.warning({
+						message: 'Reset password token expired, or not valid.',
+					});
+
+					try {
+						await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(
+							token,
+						);
+					} catch (err) {
+						if (!(err instanceof Prisma.PrismaClientUnknownRequestError)) {
+							throw err;
+						}
+					}
+
+					throw new CustomError(
+						'Reset password token expired, or not valid.',
+						401,
+					);
+				}
+
 				await callback(decoded);
 			},
 		);

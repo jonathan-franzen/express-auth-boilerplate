@@ -4,5 +4,12 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_DB: authentication_boilerplate
+      POSTGRES_DB: express_auth_boilerplate
       POSTGRES_HOST_AUTH_METHOD: trust
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: 'mailhog'
+    ports:
+      - '1025:1025'
+      - '8025:8025'

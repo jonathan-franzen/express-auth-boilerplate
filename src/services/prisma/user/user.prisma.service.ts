@@ -3,6 +3,7 @@ import { prisma } from '@/config/prisma.config.js';
 import UserCreateInput = Prisma.UserCreateInput;
 import UserOmit = Prisma.UserOmit;
 import UserGetPayload = Prisma.UserGetPayload;
+import UserUpdateInput = Prisma.UserUpdateInput;
 
 export class UserPrismaService {
 	async getUserById(id: string): Promise<User | null> {
@@ -26,6 +27,18 @@ export class UserPrismaService {
 	): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
 		return prisma.user.findMany({
 			omit: omit,
+		});
+	}
+
+	async updateUserByEmail(
+		email: string,
+		data: UserUpdateInput,
+	): Promise<User | null> {
+		return prisma.user.update({
+			data: data,
+			where: {
+				email,
+			},
 		});
 	}
 
