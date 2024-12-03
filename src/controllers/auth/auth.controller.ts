@@ -63,35 +63,36 @@ export class AuthController {
 	async verifyEmail(req: Request, res: Response): Promise<Response> {
 		const { verifyEmailToken } = req.params;
 
-		this.jwtService.verifyVerifyEmailToken(verifyEmailToken, async (decoded: JwtPayload): Promise<void> => {
-			const email: string = decoded.verifyEmail.email;
+		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
+		const email: string = decodedVerifyEmailToken.verifyEmail.email;
+		const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
 
-			const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
-
-			if (!foundUser) {
-				logger.alert({
-					message: 'User not found when verifying email.',
-					context: {
-						email,
-						verifyEmailToken,
-					},
-				});
-
-				throw new StatusCodeError(`MESSAGE TO WRITE.`, 401);
-			}
-			if (foundUser.emailVerifiedAt) {
-				logger.warning({
-					message: 'Email already verified.',
-					context: {
-						email,
-					},
-				});
-				throw new StatusCodeError(`Email already verified.`, 410);
-			}
-			await this.userPrismaService.updateUserByEmail(foundUser.email, {
-				emailVerifiedAt: new Date(Date.now()),
+		if (!foundUser) {
+			logger.alert({
+				message: 'User not found when verifying email.',
+				context: {
+					email,
+					verifyEmailToken,
+				},
 			});
+
+			throw new StatusCodeError('User not found when verifying email.', 401);
+		}
+
+		if (foundUser.emailVerifiedAt) {
+			logger.warning({
+				message: 'Email already verified.',
+				context: {
+					email,
+				},
+			});
+			throw new StatusCodeError('Email already verified.', 410);
+		}
+
+		await this.userPrismaService.updateUserByEmail(foundUser.email, {
+			emailVerifiedAt: new Date(Date.now()),
 		});
+
 		return res.status(204).json({ message: 'Email verified.' });
 	}
 
@@ -197,43 +198,43 @@ export class AuthController {
 		});
 
 		if (!userToken) {
-			this.jwtService.verifyRefreshToken(jwt, false, async (decoded: JwtPayload): Promise<void> => {
-				const email: string = decoded.email;
-				const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
-				if (foundUser) {
-					await this.userTokenPrismaService.deleteAllUserUserTokens(foundUser.id);
-					logger.alert({
-						message: 'Attempted reuse of refresh token mitigated.',
-						context: {
-							email: foundUser.email,
-						},
-					});
-				}
-			});
+			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(jwt, false);
+			const email: string = decodedRefreshToken.email;
+			const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
+
+			if (foundUser) {
+				await this.userTokenPrismaService.deleteAllUserUserTokens(foundUser.id);
+
+				logger.alert({
+					message: 'Attempted reuse of refresh token mitigated.',
+					context: {
+						email: foundUser.email,
+					},
+				});
+			}
+
 			throw new StatusCodeError('Refresh token invalid.', 403);
 		}
 
-		const accessToken: string | void = this.jwtService.verifyRefreshToken(jwt, true, async (decoded: JwtPayload): Promise<string> => {
-			const email: string = decoded.email;
-			const roles: Role[] = userToken.user.roles;
-			const accessToken: string = this.jwtService.signAccessToken(userToken.userId, email, roles);
+		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(jwt, true);
+		const email: string = decodedRefreshToken.email;
+		const roles: Role[] = userToken.user.roles;
 
-			const newRefreshToken: string = this.jwtService.signRefreshToken(email);
+		const accessToken: string = this.jwtService.signAccessToken(userToken.userId, email, roles);
+		const newRefreshToken: string = this.jwtService.signRefreshToken(email);
 
-			await this.userTokenPrismaService.createUserToken({
-				userId: userToken.userId,
-				token: newRefreshToken,
-			});
-
-			res.cookie('jwt', newRefreshToken, {
-				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
-				maxAge: REFRESH_TOKEN_LIFETIME,
-			});
-
-			return accessToken;
+		await this.userTokenPrismaService.createUserToken({
+			userId: userToken.userId,
+			token: newRefreshToken,
 		});
+
+		res.cookie('jwt', newRefreshToken, {
+			httpOnly: true,
+			secure: false,
+			sameSite: 'lax',
+			maxAge: REFRESH_TOKEN_LIFETIME,
+		});
+
 		return res.json({ accessToken });
 	}
 
@@ -256,37 +257,37 @@ export class AuthController {
 
 	async resetPassword(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
+		const { password } = req.body;
 
-		this.jwtService.verifyResetPasswordToken(resetPasswordToken, async (decoded: JwtPayload): Promise<void> => {
-			const email: string = decoded.resetPassword.email;
+		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
+		const email: string = decodedResetPasswordToken.resetPassword.email;
+		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
-			const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
+		if (!tokenExists) {
+			throw new StatusCodeError(`Token invalid.`, 401);
+		}
 
-			if (!tokenExists) {
-				throw new StatusCodeError(`Token invalid.`, 401);
-			}
+		const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
 
-			const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
-
-			if (!foundUser) {
-				logger.warning({
-					message: 'User not found.',
-					context: {
-						email,
-					},
-				});
-
-				throw new StatusCodeError('User not found.', 401);
-			}
-
-			const hashedPassword: string = await this.bcryptService.hash(req.body.password);
-
-			await this.userPrismaService.updateUserByEmail(email, {
-				password: hashedPassword,
+		if (!foundUser) {
+			logger.warning({
+				message: 'User not found.',
+				context: {
+					email,
+				},
 			});
 
-			await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(resetPasswordToken);
+			throw new StatusCodeError('User not found.', 401);
+		}
+
+		const hashedPassword: string = await this.bcryptService.hash(password);
+
+		await this.userPrismaService.updateUserByEmail(email, {
+			password: hashedPassword,
 		});
+
+		await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(resetPasswordToken);
+
 		return res.status(204).json({ message: 'Password has been updated.' });
 	}
 
