@@ -2,5 +2,5 @@ import { emailFragmentValidator } from '@/validators/fragments/email.fragment.va
 import { ValidationChain } from 'express-validator';
 
 export function resendVerifyEmailAuthValidator(): ValidationChain[] {
-	return [...emailFragmentValidator()];
+	return [...emailFragmentValidator({ optional: false })];
 }

@@ -1,8 +1,9 @@
 import { body, ValidationChain } from 'express-validator';
 
-export function emailFragmentValidator(): ValidationChain[] {
+export function emailFragmentValidator({ optional }: { optional: boolean }): ValidationChain[] {
 	return [
 		body('email')
+			.optional(optional)
 			.exists()
 			.withMessage({ message: 'Email is required.', status: 400 })
 			.isEmail()

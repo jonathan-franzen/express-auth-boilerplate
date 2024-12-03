@@ -1,6 +1,6 @@
 import { idFragmentValidator } from '@/validators/fragments/id.fragment.validator.js';
 import { ValidationChain } from 'express-validator';
 
-export function getByIdUserValidator(): ValidationChain[] {
+export function getIdUserValidator(): ValidationChain[] {
 	return [...idFragmentValidator()];
 }

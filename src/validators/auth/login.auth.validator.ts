@@ -3,5 +3,5 @@ import { passwordFragmentValidator } from '@/validators/fragments/password.fragm
 import { ValidationChain } from 'express-validator';
 
 export function loginAuthValidator(): ValidationChain[] {
-	return [...emailFragmentValidator(), ...passwordFragmentValidator({ includeStrongCheck: false })];
+	return [...emailFragmentValidator({ optional: false }), ...passwordFragmentValidator({ includeStrongCheck: false })];
 }

@@ -6,9 +6,9 @@ import { ValidationChain } from 'express-validator';
 
 export function registerAuthValidator(): ValidationChain[] {
 	return [
-		...emailFragmentValidator(),
+		...emailFragmentValidator({ optional: false }),
 		...passwordFragmentValidator({ includeStrongCheck: true }),
-		...firstNameFragmentValidator(),
-		...lastNameFragmentValidator(),
+		...firstNameFragmentValidator({ optional: false }),
+		...lastNameFragmentValidator({ optional: false }),
 	];
 }

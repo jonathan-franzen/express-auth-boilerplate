@@ -1,9 +1,11 @@
 import * as path from 'path';
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js';
 import { SendEmailOptionsEmailInterface } from '@/interfaces/email/send-email-options.email.interface.js';
-import { User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Transporter } from 'nodemailer';
 import Twig from 'twig';
+
+import UserGetPayload = Prisma.UserGetPayload;
 
 export class MailerService {
 	constructor(
@@ -39,7 +41,7 @@ export class MailerService {
 		await this.mailer.sendMail(mailOptions);
 	}
 
-	async sendVerifyEmail(user: User, verifyToken: string): Promise<void> {
+	async sendVerifyEmail(user: UserGetPayload<{ omit: { password: true; roles: true } }>, verifyToken: string): Promise<void> {
 		await this.sendMail({
 			to: user.email,
 			subject: 'Verify your email',
@@ -51,7 +53,7 @@ export class MailerService {
 		});
 	}
 
-	async sendResetPasswordEmail(user: User, resetPasswordToken: string): Promise<void> {
+	async sendResetPasswordEmail(user: UserGetPayload<{ omit: { password: true; roles: true } }>, resetPasswordToken: string): Promise<void> {
 		await this.sendMail({
 			to: user.email,
 			subject: 'Reset your password',

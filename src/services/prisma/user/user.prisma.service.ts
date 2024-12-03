@@ -5,6 +5,7 @@ import UserCreateInput = Prisma.UserCreateInput;
 import UserOmit = Prisma.UserOmit;
 import UserGetPayload = Prisma.UserGetPayload;
 import UserUpdateInput = Prisma.UserUpdateInput;
+import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
 
 export class UserPrismaService {
 	async getUserById(id: string): Promise<User | null> {
@@ -15,26 +16,25 @@ export class UserPrismaService {
 		});
 	}
 
-	async getUserByEmail(email: string): Promise<User | null> {
+	async getUserByEmail(email: string, omit?: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }> | null> {
 		return prisma.user.findUnique({
 			where: {
 				email,
 			},
+			omit: omit,
 		});
 	}
 
-	async getAllUsers(omit: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
+	async getAllUsers(omit?: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
 		return prisma.user.findMany({
 			omit: omit,
 		});
 	}
 
-	async updateUserByEmail(email: string, data: UserUpdateInput): Promise<User | null> {
+	async updateUser(where: UserWhereUniqueInput, data: UserUpdateInput): Promise<User> {
 		return prisma.user.update({
 			data: data,
-			where: {
-				email,
-			},
+			where: where,
 		});
 	}
 

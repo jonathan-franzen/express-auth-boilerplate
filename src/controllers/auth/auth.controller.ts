@@ -14,6 +14,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
+import UserGetPayload = Prisma.UserGetPayload;
 
 export class AuthController {
 	constructor(
@@ -28,7 +29,10 @@ export class AuthController {
 	async register(req: Request, res: Response): Promise<Response> {
 		const { email, password, firstName, lastName } = req.body;
 
-		const duplicate: User | null = await this.userPrismaService.getUserByEmail(email);
+		const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
 
 		if (duplicate) {
 			logger.warning({
@@ -65,7 +69,11 @@ export class AuthController {
 
 		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
 		const email: string = decodedVerifyEmailToken.verifyEmail.email;
-		const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
+
+		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
 
 		if (!foundUser) {
 			logger.alert({
@@ -99,7 +107,10 @@ export class AuthController {
 	async resendVerifyEmail(req: Request, res: Response): Promise<Response> {
 		const { email } = req.body;
 
-		const user: User | null = await this.userPrismaService.getUserByEmail(email);
+		const user: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
 
 		if (!user) {
 			throw new StatusCodeError('User not found.', 404);
@@ -200,7 +211,10 @@ export class AuthController {
 		if (!userToken) {
 			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(jwt, false);
 			const email: string = decodedRefreshToken.email;
-			const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
+			const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+				password: true,
+				roles: true,
+			});
 
 			if (foundUser) {
 				await this.userTokenPrismaService.deleteAllUserUserTokens(foundUser.id);
@@ -241,7 +255,10 @@ export class AuthController {
 	async sendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
 		const { email } = req.body;
 
-		const user: User | null = await this.userPrismaService.getUserByEmail(email);
+		const user: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
 
 		if (!user) {
 			return res.status(204).json({ message: 'Reset password email sent.' });
@@ -267,7 +284,10 @@ export class AuthController {
 			throw new StatusCodeError(`Token invalid.`, 401);
 		}
 
-		const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
+		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
 
 		if (!foundUser) {
 			logger.warning({
