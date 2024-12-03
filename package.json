@@ -25,7 +25,6 @@
 		"prettier:check": "prettier --check --ignore-unknown ."
 	},
 	"devDependencies": {
-		"@ianvs/prettier-plugin-sort-imports": "^4.4.0",
 		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
 		"@types/bcrypt": "^5.0.2",
 		"@types/commander": "^2.12.5",
@@ -41,7 +40,6 @@
 		"nodemon": "^3.1.0",
 		"prettier": "^3.2.5",
 		"prisma": "^5.13.0",
-		"tsconfig-paths": "^4.2.0",
 		"tsx": "^4.19.2",
 		"typescript": "^5.4.5"
 	}

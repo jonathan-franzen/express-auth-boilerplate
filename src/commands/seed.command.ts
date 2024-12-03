@@ -6,7 +6,9 @@ import { Command } from 'commander';
 
 import UserCreateInput = Prisma.UserCreateInput;
 
-function getUsers(): Prisma.UserCreateInput[] {
+export const seedCommand: Command = new Command('db:seed').description('Init database').action(seed);
+
+function getUsers(): UserCreateInput[] {
 	return [
 		{
 			email: 'admin@email.com',
@@ -18,7 +20,7 @@ function getUsers(): Prisma.UserCreateInput[] {
 	];
 }
 
-async function createUser(user: Prisma.UserCreateInput): Promise<void> {
+async function createUser(user: UserCreateInput): Promise<void> {
 	const hashedPassword: string = await bcryptService.hash(user.password);
 	await prisma.user.create({
 		data: {
@@ -31,7 +33,7 @@ async function createUser(user: Prisma.UserCreateInput): Promise<void> {
 	});
 }
 
-export const seedCommand: Command = new Command('seed').description('Init database').action(async (): Promise<void> => {
+async function seed(): Promise<void> {
 	const users: UserCreateInput[] = getUsers();
 
 	try {
@@ -41,4 +43,4 @@ export const seedCommand: Command = new Command('seed').description('Init databa
 		logger.error('Error during database seeding:', error);
 		process.exit(1);
 	}
-});
+}

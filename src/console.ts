@@ -1,10 +1,10 @@
 import { seedCommand } from '@/commands/seed.command.js';
 import { Command } from 'commander';
 
-export const program = new Command();
+export const console = new Command();
 
-program.name('Node Console').description('CLI Console for Node.').version('1.0.0');
+console.name('Node Console').description('CLI Console for Node.').version('1.0.0');
 
-program.addCommand(seedCommand);
+console.addCommand(seedCommand);
 
-program.parse(process.argv);
+console.parse(process.argv);
