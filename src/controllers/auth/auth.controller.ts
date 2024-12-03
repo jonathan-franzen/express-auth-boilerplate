@@ -1,11 +1,11 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
+import { StatusCodeError } from '@/errors/status-code.error.js';
 import { BcryptService } from '@/services/bcrypt/bcrypt.service.js';
 import { JwtService } from '@/services/jwt/jwt.service.js';
 import { MailerService } from '@/services/mailer/mailer.service.js';
 import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
 import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
-import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
 import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -37,7 +37,7 @@ export class AuthController {
 				},
 			});
 
-			throw new CustomError('Email already in use.', 409);
+			throw new StatusCodeError('Email already in use.', 409);
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -76,7 +76,7 @@ export class AuthController {
 					},
 				});
 
-				throw new CustomError(`MESSAGE TO WRITE.`, 401);
+				throw new StatusCodeError(`MESSAGE TO WRITE.`, 401);
 			}
 			if (foundUser.emailVerifiedAt) {
 				logger.warning({
@@ -85,7 +85,7 @@ export class AuthController {
 						email,
 					},
 				});
-				throw new CustomError(`Email already verified.`, 410);
+				throw new StatusCodeError(`Email already verified.`, 410);
 			}
 			await this.userPrismaService.updateUserByEmail(foundUser.email, {
 				emailVerifiedAt: new Date(Date.now()),
@@ -100,11 +100,11 @@ export class AuthController {
 		const user: User | null = await this.userPrismaService.getUserByEmail(email);
 
 		if (!user) {
-			throw new CustomError('User not found.', 404);
+			throw new StatusCodeError('User not found.', 404);
 		}
 
 		if (user.emailVerifiedAt) {
-			throw new CustomError(`Email already verified.`, 409);
+			throw new StatusCodeError(`Email already verified.`, 409);
 		}
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
@@ -128,7 +128,7 @@ export class AuthController {
 				},
 			});
 
-			throw new CustomError('User does not exist.', 401);
+			throw new StatusCodeError('User does not exist.', 401);
 		}
 
 		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
@@ -141,7 +141,7 @@ export class AuthController {
 				},
 			});
 
-			throw new CustomError('Incorrect password.', 401);
+			throw new StatusCodeError('Incorrect password.', 401);
 		}
 
 		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email, user.roles);
@@ -209,7 +209,7 @@ export class AuthController {
 					});
 				}
 			});
-			throw new CustomError('Refresh token invalid.', 403);
+			throw new StatusCodeError('Refresh token invalid.', 403);
 		}
 
 		const accessToken: string | void = this.jwtService.verifyRefreshToken(jwt, true, async (decoded: JwtPayload): Promise<string> => {
@@ -262,7 +262,7 @@ export class AuthController {
 			const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 			if (!tokenExists) {
-				throw new CustomError(`Token invalid.`, 401);
+				throw new StatusCodeError(`Token invalid.`, 401);
 			}
 
 			const foundUser: User | null = await this.userPrismaService.getUserByEmail(email);
@@ -275,7 +275,7 @@ export class AuthController {
 					},
 				});
 
-				throw new CustomError('User not found.', 401);
+				throw new StatusCodeError('User not found.', 401);
 			}
 
 			const hashedPassword: string = await this.bcryptService.hash(req.body.password);

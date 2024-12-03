@@ -1,4 +1,4 @@
-export class CustomError extends Error {
+export class StatusCodeError extends Error {
 	statusCode: number;
 
 	constructor(message: string, statusCode: number) {

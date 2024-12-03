@@ -1,5 +1,5 @@
+import { StatusCodeError } from '@/errors/status-code.error.js';
 import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
-import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -23,7 +23,7 @@ export class UserController {
 				},
 			});
 
-			throw new CustomError(`User ID ${id} not found.`, 404);
+			throw new StatusCodeError(`User ID ${id} not found.`, 404);
 		}
 
 		return res.json(user);
@@ -48,7 +48,7 @@ export class UserController {
 			return res.sendStatus(204);
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw new CustomError(`User ID ${id} not found.`, 404);
+				throw new StatusCodeError(`User ID ${id} not found.`, 404);
 			} else {
 				throw err;
 			}

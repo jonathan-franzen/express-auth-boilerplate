@@ -1,5 +1,5 @@
+import { StatusCodeError } from '@/errors/status-code.error.js';
 import { AsyncMiddlewareExpressInterface } from '@/interfaces/express/async-middleware.express.interface.js';
-import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
 import { NextFunction, Request, Response } from 'express';
 import { checkExact, Result, ValidationChain, ValidationError, validationResult } from 'express-validator';
@@ -30,6 +30,6 @@ export function expressValidatorMiddleware(validators: ValidationChain[]): Async
 			},
 		});
 
-		throw new CustomError(firstError.msg.message, firstError.msg.status);
+		throw new StatusCodeError(firstError.msg.message, firstError.msg.status);
 	};
 }

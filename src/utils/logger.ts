@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import * as os from 'os';
 import { APP_ENV } from '@/constants/environment.constants.js';
-import { CustomError } from '@/utils/custom-error.js';
+import { StatusCodeError } from '@/errors/status-code.error.js';
 import { Format, TransformableInfo } from 'logform';
 import winston, { createLogger, format, Logger, transports } from 'winston';
 
@@ -28,7 +28,7 @@ const logFormat: Format = printf(({ level, message, context, extra }: Transforma
 
 	if (typeof context !== 'object') {
 		console.error('Log message context wrong format.');
-		throw new CustomError('Something unexpected happened.', 500);
+		throw new StatusCodeError('Something unexpected happened.', 500);
 	}
 
 	context = {

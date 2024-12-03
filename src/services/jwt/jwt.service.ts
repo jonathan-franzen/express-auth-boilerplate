@@ -1,7 +1,7 @@
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
+import { StatusCodeError } from '@/errors/status-code.error.js';
 import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
-import { CustomError } from '@/utils/custom-error.js';
 import logger from '@/utils/logger.js';
 import { Prisma, Role } from '@prisma/client';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
@@ -49,7 +49,7 @@ export class JwtService {
 					}
 				}
 
-				throw new CustomError('Token expired, or not valid.', 403);
+				throw new StatusCodeError('Token expired, or not valid.', 403);
 			}
 			await callback(decoded);
 		});
@@ -74,7 +74,7 @@ export class JwtService {
 					message: 'Verify email token expired, or not valid.',
 				});
 
-				throw new CustomError('Verify email token expired, or not valid.', 401);
+				throw new StatusCodeError('Verify email token expired, or not valid.', 401);
 			}
 
 			await callback(decoded);
@@ -108,7 +108,7 @@ export class JwtService {
 					}
 				}
 
-				throw new CustomError('Reset password token expired, or not valid.', 401);
+				throw new StatusCodeError('Reset password token expired, or not valid.', 401);
 			}
 
 			await callback(decoded);

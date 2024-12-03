@@ -6,7 +6,7 @@ import { Command } from 'commander';
 
 import UserCreateInput = Prisma.UserCreateInput;
 
-export const seedCommand: Command = new Command('db:seed').description('Init database').action(seed);
+export const seedDbCommand: Command = new Command('db:seed').description('Init database').action(seed);
 
 function getUsers(): UserCreateInput[] {
 	return [
