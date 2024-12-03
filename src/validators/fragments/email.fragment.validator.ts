@@ -6,7 +6,7 @@ export function emailFragmentValidator(): ValidationChain[] {
 			.exists()
 			.withMessage({ message: 'Email is required.', status: 400 })
 			.isEmail()
-			.withMessage({ message: 'Not a valid email.', status: 400 })
+			.withMessage({ message: 'Not a valid email address.', status: 400 })
 			.trim(),
 	];
 }

@@ -5,5 +5,10 @@ import { passwordFragmentValidator } from '@/validators/fragments/password.fragm
 import { ValidationChain } from 'express-validator';
 
 export function registerAuthValidator(): ValidationChain[] {
-	return [...emailFragmentValidator(), ...passwordFragmentValidator(), ...firstNameFragmentValidator(), ...lastNameFragmentValidator()];
+	return [
+		...emailFragmentValidator(),
+		...passwordFragmentValidator({ includeStrongCheck: true }),
+		...firstNameFragmentValidator(),
+		...lastNameFragmentValidator(),
+	];
 }

@@ -44,6 +44,14 @@ export class UserPrismaService {
 		});
 	}
 
+	async createOrUpdateUser(email: string, userUpdateInput: UserUpdateInput, userCreateInput: UserCreateInput): Promise<User> {
+		return prisma.user.upsert({
+			where: { email },
+			update: userUpdateInput,
+			create: userCreateInput,
+		});
+	}
+
 	async deleteUser(id: string): Promise<User> {
 		return prisma.user.delete({
 			where: {

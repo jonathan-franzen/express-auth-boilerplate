@@ -29,9 +29,13 @@ authRouter.post(
 	}),
 );
 
-authRouter.post('/resend-verify-email', expressValidatorMiddleware(resendVerifyEmailAuthValidator()), async (req: Request, res: Response): Promise<void> => {
-	await authController.resendVerifyEmail(req, res);
-});
+authRouter.post(
+	'/resend-verify-email',
+	expressValidatorMiddleware(resendVerifyEmailAuthValidator()),
+	asyncHandler(async (req: Request, res: Response): Promise<void> => {
+		await authController.resendVerifyEmail(req, res);
+	}),
+);
 
 authRouter.post(
 	'/login',
@@ -49,16 +53,20 @@ authRouter.post(
 	}),
 );
 
-authRouter.post('/reset-password', expressValidatorMiddleware(sendResetPasswordEmailAuthValidator()), async (req: Request, res: Response): Promise<void> => {
-	await authController.sendResetPasswordEmail(req, res);
-});
+authRouter.post(
+	'/reset-password',
+	expressValidatorMiddleware(sendResetPasswordEmailAuthValidator()),
+	asyncHandler(async (req: Request, res: Response): Promise<void> => {
+		await authController.sendResetPasswordEmail(req, res);
+	}),
+);
 
 authRouter.post(
 	'/reset-password/:resetPasswordToken',
 	expressValidatorMiddleware(resetPasswordAuthValidator()),
-	async (req: Request, res: Response): Promise<void> => {
+	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await authController.resetPassword(req, res);
-	},
+	}),
 );
 
 authRouter.delete(

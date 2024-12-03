@@ -1,5 +1,5 @@
-import { prisma } from '@/config/prisma.config.js';
 import { bcryptService } from '@/services/bcrypt/index.js';
+import { userPrismaService } from '@/services/prisma/user/index.js';
 import logger from '@/utils/logger.js';
 import { Prisma } from '@prisma/client';
 import { Command } from 'commander';
@@ -20,17 +20,16 @@ function getUsers(): UserCreateInput[] {
 	];
 }
 
-async function createUser(user: UserCreateInput): Promise<void> {
-	const hashedPassword: string = await bcryptService.hash(user.password);
-	await prisma.user.create({
-		data: {
-			email: user.email,
-			password: hashedPassword,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			roles: user.roles,
-		},
-	});
+async function createUser(userCreateInput: UserCreateInput): Promise<void> {
+	const hashedPassword: string = await bcryptService.hash(userCreateInput.password);
+
+	const user = {
+		...userCreateInput,
+		password: hashedPassword,
+		emailVerifiedAt: new Date(Date.now()),
+	};
+
+	await userPrismaService.createOrUpdateUser(user.email, { ...user }, { ...user });
 }
 
 async function seed(): Promise<void> {

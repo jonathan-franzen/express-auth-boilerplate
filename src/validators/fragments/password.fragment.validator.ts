@@ -1,12 +1,13 @@
 import { body, ValidationChain } from 'express-validator';
 
-export function passwordFragmentValidator(): ValidationChain[] {
+export function passwordFragmentValidator({ includeStrongCheck }: { includeStrongCheck: boolean }): ValidationChain[] {
 	return [
 		body('password')
 			.exists()
 			.withMessage({ message: 'Password is required.', status: 400 })
 			.isString()
 			.withMessage({ message: 'Password must be a string.', status: 400 })
+			.if((): boolean => includeStrongCheck)
 			.isStrongPassword({
 				minLength: 8,
 				minLowercase: 1,

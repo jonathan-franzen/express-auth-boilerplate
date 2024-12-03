@@ -1,3 +1,4 @@
+import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
 import { StatusCodeError } from '@/errors/status-code.error.js';
 import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
@@ -24,13 +25,13 @@ export class JwtService {
 				},
 			},
 			ACCESS_TOKEN_SECRET,
-			{ expiresIn: '10s' },
+			{ expiresIn: '1h' },
 		);
 	}
 
 	signRefreshToken(email: string): string {
 		return jwt.sign({ email }, REFRESH_TOKEN_SECRET, {
-			expiresIn: '2m',
+			expiresIn: REFRESH_TOKEN_LIFETIME,
 		});
 	}
 
