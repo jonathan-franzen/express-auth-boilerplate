@@ -6,6 +6,8 @@ import logger from '@/utils/logger.js';
 import { Prisma, Role } from '@prisma/client';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
+import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
+
 export class JwtService {
 	constructor(
 		private readonly userTokenPrismaService: UserTokenPrismaService,
@@ -43,7 +45,7 @@ export class JwtService {
 					try {
 						await this.userTokenPrismaService.deleteUserToken(token);
 					} catch (err) {
-						if (!(err instanceof Prisma.PrismaClientUnknownRequestError)) {
+						if (!(err instanceof PrismaClientUnknownRequestError)) {
 							throw err;
 						}
 					}
@@ -103,7 +105,7 @@ export class JwtService {
 				try {
 					await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token);
 				} catch (err) {
-					if (!(err instanceof Prisma.PrismaClientUnknownRequestError)) {
+					if (!(err instanceof PrismaClientUnknownRequestError)) {
 						throw err;
 					}
 				}

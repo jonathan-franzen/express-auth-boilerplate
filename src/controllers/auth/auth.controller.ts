@@ -13,6 +13,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
+import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
 export class AuthController {
 	constructor(
@@ -151,7 +152,7 @@ export class AuthController {
 			try {
 				await this.userTokenPrismaService.deleteUserToken(jwt);
 			} catch (err) {
-				if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+				if (err instanceof PrismaClientUnknownRequestError) {
 					logger.alert({
 						message: 'Attempted refresh token reuse at login.',
 						context: {
@@ -295,7 +296,7 @@ export class AuthController {
 		try {
 			await this.userTokenPrismaService.deleteUserToken(jwt);
 		} catch (err) {
-			if (!(err instanceof Prisma.PrismaClientUnknownRequestError)) {
+			if (!(err instanceof PrismaClientUnknownRequestError)) {
 				throw err;
 			}
 		}

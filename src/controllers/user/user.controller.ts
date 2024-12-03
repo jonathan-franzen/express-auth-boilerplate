@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 
 import UserGetPayload = Prisma.UserGetPayload;
 import UserOmit = Prisma.UserOmit;
+import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
 export class UserController {
 	constructor(private readonly userPrismaService: UserPrismaService) {}
@@ -47,7 +48,7 @@ export class UserController {
 
 			return res.sendStatus(204);
 		} catch (err) {
-			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+			if (err instanceof PrismaClientUnknownRequestError) {
 				throw new StatusCodeError(`User ID ${id} not found.`, 404);
 			} else {
 				throw err;

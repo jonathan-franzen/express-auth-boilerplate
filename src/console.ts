@@ -1,10 +1,10 @@
-import { seedDbCommand } from '@/commands/db/seed.db.command.js';
+import dbCommands from '@/commands/db/index.js';
 import { Command } from 'commander';
 
 export const console = new Command();
 
 console.name('Node Console').description('CLI Console for Node.').version('1.0.0');
 
-console.addCommand(seedDbCommand);
+dbCommands.forEach((cmd: Command): Command => console.addCommand(cmd));
 
 console.parse(process.argv);
