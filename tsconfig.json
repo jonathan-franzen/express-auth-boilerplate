@@ -15,5 +15,5 @@
 		"removeComments": true
 	},
 	"include": ["**/*"],
-	"exclude": ["node_modules", "coverage", ".build", ".serverless", "_optimize", "_warmup", "bin"]
+	"exclude": ["node_modules", "coverage", ".build", ".serverless", "_optimize", "_warmup", "bin", "frontend"]
 }

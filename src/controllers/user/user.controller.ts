@@ -17,7 +17,7 @@ export class UserController {
 			return res.status(401).json({ message: 'Unauthorized.' });
 		}
 
-		const { roles, emailVerifiedAt, createdAt, updatedAt, id, ...me } = req.user;
+		const { roles, createdAt, updatedAt, ...me } = req.user;
 		return res.json(me);
 	}
 

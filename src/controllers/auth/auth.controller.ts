@@ -59,7 +59,6 @@ export class AuthController {
 		await this.mailerService.sendVerifyEmail(createdUser, verifyToken);
 
 		return res.status(201).json({
-			message: 'User registered successfully.',
 			email: createdUser.email,
 		});
 	}
@@ -97,9 +96,12 @@ export class AuthController {
 			throw new StatusCodeError('Email already verified.', 410);
 		}
 
-		await this.userPrismaService.updateUserByEmail(foundUser.email, {
-			emailVerifiedAt: new Date(Date.now()),
-		});
+		await this.userPrismaService.updateUser(
+			{ email: foundUser.email },
+			{
+				emailVerifiedAt: new Date(Date.now()),
+			},
+		);
 
 		return res.status(204).json({ message: 'Email verified.' });
 	}
@@ -129,7 +131,7 @@ export class AuthController {
 
 	async login(req: Request, res: Response): Promise<Response> {
 		const { email, password } = req.body;
-		const { jwt } = req.cookies;
+		const { refreshToken } = req.cookies;
 
 		const user: User | null = await this.userPrismaService.getUserByEmail(email);
 
@@ -157,12 +159,9 @@ export class AuthController {
 			throw new StatusCodeError('Incorrect password.', 401);
 		}
 
-		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email, user.roles);
-		const refreshToken: string = this.jwtService.signRefreshToken(user.email);
-
-		if (jwt) {
+		if (refreshToken) {
 			try {
-				await this.userTokenPrismaService.deleteUserToken(jwt);
+				await this.userTokenPrismaService.deleteUserToken(refreshToken);
 			} catch (err) {
 				if (err instanceof PrismaClientUnknownRequestError) {
 					logger.alert({
@@ -177,22 +176,20 @@ export class AuthController {
 					throw err;
 				}
 			}
-			res.clearCookie('jwt', {
-				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
-			});
 		}
 
+		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email, user.roles);
+		const newRefreshToken: string = this.jwtService.signRefreshToken(user.email);
+
 		await this.userTokenPrismaService.createUserToken({
-			token: refreshToken,
+			token: newRefreshToken,
 			userId: user.id,
 		});
 
-		res.cookie('jwt', refreshToken, {
+		res.cookie('refreshToken', newRefreshToken, {
 			httpOnly: true,
-			secure: false,
-			sameSite: 'lax',
+			secure: process.env.APP_ENV === 'prod',
+			sameSite: 'none',
 			maxAge: REFRESH_TOKEN_LIFETIME,
 		});
 
@@ -200,16 +197,14 @@ export class AuthController {
 	}
 
 	async refresh(req: Request, res: Response): Promise<Response> {
-		const { jwt } = req.cookies;
+		const { refreshToken } = req.cookies;
 
-		res.clearCookie('jwt', { httpOnly: true, secure: false, sameSite: 'lax' });
-
-		const userToken: UserTokenGetPayload<{ include: UserTokenInclude }> | null = await this.userTokenPrismaService.getUserTokenByToken(jwt, {
+		const userToken: UserTokenGetPayload<{ include: UserTokenInclude }> | null = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
 			user: true,
 		});
 
 		if (!userToken) {
-			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(jwt, false);
+			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, false);
 			const email: string = decodedRefreshToken.email;
 			const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
 				password: true,
@@ -227,10 +222,15 @@ export class AuthController {
 				});
 			}
 
+			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
+
 			throw new StatusCodeError('Refresh token invalid.', 403);
 		}
 
-		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(jwt, true);
+		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
+
+		await this.userTokenPrismaService.deleteUserToken(refreshToken);
+
 		const email: string = decodedRefreshToken.email;
 		const roles: Role[] = userToken.user.roles;
 
@@ -242,10 +242,10 @@ export class AuthController {
 			token: newRefreshToken,
 		});
 
-		res.cookie('jwt', newRefreshToken, {
+		res.cookie('refreshToken', newRefreshToken, {
 			httpOnly: true,
-			secure: false,
-			sameSite: 'lax',
+			secure: process.env.APP_ENV === 'prod',
+			sameSite: 'none',
 			maxAge: REFRESH_TOKEN_LIFETIME,
 		});
 
@@ -302,9 +302,12 @@ export class AuthController {
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
 
-		await this.userPrismaService.updateUserByEmail(email, {
-			password: hashedPassword,
-		});
+		await this.userPrismaService.updateUser(
+			{ email },
+			{
+				password: hashedPassword,
+			},
+		);
 
 		await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(resetPasswordToken);
 
@@ -312,17 +315,17 @@ export class AuthController {
 	}
 
 	async logout(req: Request, res: Response): Promise<Response> {
-		const { jwt } = req.cookies;
+		const { refreshToken } = req.cookies;
 
 		try {
-			await this.userTokenPrismaService.deleteUserToken(jwt);
+			await this.userTokenPrismaService.deleteUserToken(refreshToken);
 		} catch (err) {
 			if (!(err instanceof PrismaClientUnknownRequestError)) {
 				throw err;
 			}
 		}
 
-		res.clearCookie('jwt', { httpOnly: true, secure: false, sameSite: 'lax' });
+		res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 		return res.status(204).json({ message: 'Success' });
 	}
 }

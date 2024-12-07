@@ -43,6 +43,10 @@ export class JwtService {
 				if (err || typeof decoded !== 'object' || !decoded.email) {
 					logger.warning({
 						message: 'Refresh token expired, or not valid.',
+						context: {
+							decoded,
+							err,
+						},
 					});
 
 					if (deleteTokenOnError) {
