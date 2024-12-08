@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 
 export default function LoginForm(): ReactElement {
-	const [isFetching, setIsFetching] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
 	const handleSubmit = async (formData: Record<string, string>) => {
-		setIsFetching(true);
+		setIsLoading(true);
 		try {
 			const response = await fetch('/api/login', {
 				method: 'POST',
@@ -25,7 +25,7 @@ export default function LoginForm(): ReactElement {
 			console.error('Unable to login', error);
 			throw new Error(error.message || 'Something went wrong.');
 		} finally {
-			setIsFetching(false);
+			setIsLoading(false);
 		}
 	};
 
@@ -37,10 +37,10 @@ export default function LoginForm(): ReactElement {
 			]}
 			submitLabel='SIGN IN'
 			onSubmit={handleSubmit}
-			isFetching={isFetching}
+			isLoading={isLoading}
 			additionalContent={
 				<div className='flex justify-end mt-1'>
-					<a href='/forgot-password' className='w-fit text-xs hover:text-pink-700 text-pink-900'>
+					<a href='/reset-password' className='w-fit text-xs hover:text-pink-700 text-pink-900'>
 						Forgot your password?
 					</a>
 				</div>

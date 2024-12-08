@@ -1,4 +1,4 @@
-import RegisterForm from '@/components/icon/register-form';
+import RegisterForm from '@/components/register-form';
 import { ReactElement } from 'react';
 
 export default function RegisterPage(): ReactElement {

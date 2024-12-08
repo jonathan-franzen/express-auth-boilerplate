@@ -1,25 +1,11 @@
 'use client';
 
+import Button from '@/components/button';
+import { FormPropsReactInterface } from '@/interfaces/react/form-props.react.interface';
 import clsx from 'clsx';
 import { ChangeEvent, FormEvent, ReactElement, useState } from 'react';
 
-interface FormField {
-	name: string;
-	type: string;
-	placeholder?: string;
-	autoComplete?: string;
-	required?: boolean;
-}
-
-interface FormProps {
-	fields: FormField[];
-	submitLabel: string;
-	onSubmit: (formData: Record<string, string>) => Promise<void>;
-	isFetching?: boolean;
-	additionalContent?: ReactElement;
-}
-
-export default function Form({ fields, submitLabel, onSubmit, isFetching = false, additionalContent }: FormProps): ReactElement {
+export default function Form({ fields, submitLabel, onSubmit, isLoading = false, additionalContent }: FormPropsReactInterface): ReactElement {
 	const [formData, setFormData] = useState<Record<string, string>>({});
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -60,13 +46,7 @@ export default function Form({ fields, submitLabel, onSubmit, isFetching = false
 				</div>
 			))}
 			{additionalContent && <div className='mt-2'>{additionalContent}</div>}
-			<button
-				type='submit'
-				disabled={isFetching}
-				className='min-h-10.5 text-center justify-center mt-6 inline-flex items-center gap-2 w-full rounded-md bg-gray-700 px-3 text-xs font-semibold text-white shadow-inner disabled:cursor-not-allowed focus:outline-none data-[hover]:bg-gray-600 data-[open]:bg-gray-700 data-[focus]:outline-1'
-			>
-				{isFetching ? 'Loading...' : submitLabel}
-			</button>
+			<Button label={submitLabel} type='submit' isLoading={isLoading} className='mt-6' />
 			{errorMessage && (
 				<div className='bg-pink-50 p-2 mt-2 flex items-center gap-3 rounded-md'>
 					<div className='text-2xs text-pink-900'>{errorMessage}</div>

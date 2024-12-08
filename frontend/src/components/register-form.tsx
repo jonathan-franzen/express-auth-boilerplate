@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 
 export default function RegisterForm(): ReactElement {
-	const [isFetching, setIsFetching] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
 	const handleSubmit = async (formData: Record<string, string>) => {
-		setIsFetching(true);
+		setIsLoading(true);
 		try {
 			const response = await fetch('/api/register', {
 				method: 'POST',
@@ -25,7 +25,7 @@ export default function RegisterForm(): ReactElement {
 			console.error('Unable to register', error);
 			throw new Error(error.message || 'Something went wrong.');
 		} finally {
-			setIsFetching(false);
+			setIsLoading(false);
 		}
 	};
 
@@ -40,7 +40,7 @@ export default function RegisterForm(): ReactElement {
 				]}
 				submitLabel='SIGN UP'
 				onSubmit={handleSubmit}
-				isFetching={isFetching}
+				isLoading={isLoading}
 			/>
 		</>
 	);
