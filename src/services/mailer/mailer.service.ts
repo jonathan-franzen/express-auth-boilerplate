@@ -48,7 +48,7 @@ export class MailerService {
 			templateName: 'verify-email.template.twig',
 			context: {
 				name: user.firstName,
-				verifyUrl: `${FRONTEND_URL}/verify/${verifyToken}`,
+				verifyUrl: `${FRONTEND_URL}/verify-email/${verifyToken}`,
 			},
 		});
 	}

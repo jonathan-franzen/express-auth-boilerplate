@@ -1,7 +1,7 @@
-import { FormFieldReactInterface } from '@/interfaces/react/form-field.react.interface';
+import FormFieldReactInterface from '@/interfaces/react/form-field.react.interface';
 import { ReactElement } from 'react';
 
-export interface FormPropsReactInterface {
+export default interface FormPropsReactInterface {
 	fields: FormFieldReactInterface[];
 	submitLabel: string;
 	onSubmit: (formData: Record<string, string>) => Promise<void>;

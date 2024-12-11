@@ -1,4 +1,4 @@
-export interface FormFieldReactInterface {
+export default interface FormFieldReactInterface {
 	name: string;
 	type: string;
 	placeholder?: string;

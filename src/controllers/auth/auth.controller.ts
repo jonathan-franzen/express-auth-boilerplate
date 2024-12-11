@@ -1,5 +1,5 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import { StatusCodeError } from '@/errors/status-code.error.js';
+import { StatusError } from '@/errors/status.error.js';
 import { BcryptService } from '@/services/bcrypt/bcrypt.service.js';
 import { JwtService } from '@/services/jwt/jwt.service.js';
 import { MailerService } from '@/services/mailer/mailer.service.js';
@@ -42,7 +42,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusCodeError('Email already in use.', 409);
+			throw new StatusError('Email already in use.', 409);
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -83,7 +83,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusCodeError('User not found when verifying email.', 401);
+			throw new StatusError('User not found when verifying email.', 401);
 		}
 
 		if (foundUser.emailVerifiedAt) {
@@ -93,7 +93,7 @@ export class AuthController {
 					email,
 				},
 			});
-			throw new StatusCodeError('Email already verified.', 410);
+			throw new StatusError('Email already verified.', 410);
 		}
 
 		await this.userPrismaService.updateUser(
@@ -115,11 +115,11 @@ export class AuthController {
 		});
 
 		if (!user) {
-			throw new StatusCodeError('User not found.', 404);
+			throw new StatusError('User not found.', 404);
 		}
 
 		if (user.emailVerifiedAt) {
-			throw new StatusCodeError(`Email already verified.`, 409);
+			throw new StatusError(`Email already verified.`, 409);
 		}
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
@@ -143,7 +143,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusCodeError('User does not exist.', 401);
+			throw new StatusError('User does not exist.', 401);
 		}
 
 		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
@@ -156,7 +156,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusCodeError('Incorrect password.', 401);
+			throw new StatusError('Incorrect password.', 401);
 		}
 
 		if (refreshToken) {
@@ -171,7 +171,7 @@ export class AuthController {
 						},
 					});
 
-					await this.userTokenPrismaService.deleteAllUserUserTokens(user.id);
+					await this.userTokenPrismaService.deleteUserTokens({userId: user.id});
 				} else {
 					throw err;
 				}
@@ -190,7 +190,7 @@ export class AuthController {
 			httpOnly: true,
 			secure: process.env.APP_ENV === 'prod',
 			sameSite: 'none',
-			maxAge: REFRESH_TOKEN_LIFETIME,
+			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
 		});
 
 		return res.json({ accessToken });
@@ -212,7 +212,7 @@ export class AuthController {
 			});
 
 			if (foundUser) {
-				await this.userTokenPrismaService.deleteAllUserUserTokens(foundUser.id);
+				await this.userTokenPrismaService.deleteUserTokens({userId: foundUser.id});
 
 				logger.alert({
 					message: 'Attempted reuse of refresh token mitigated.',
@@ -224,7 +224,7 @@ export class AuthController {
 
 			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-			throw new StatusCodeError('Refresh token invalid.', 403);
+			throw new StatusError('Refresh token invalid.', 403);
 		}
 
 		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
@@ -246,7 +246,7 @@ export class AuthController {
 			httpOnly: true,
 			secure: process.env.APP_ENV === 'prod',
 			sameSite: 'none',
-			maxAge: REFRESH_TOKEN_LIFETIME,
+			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
 		});
 
 		return res.json({ accessToken });
@@ -281,7 +281,7 @@ export class AuthController {
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			throw new StatusCodeError(`Token invalid.`, 401);
+			throw new StatusError('Token invalid.', 401);
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -297,7 +297,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusCodeError('User not found.', 401);
+			throw new StatusError('User not found.', 401);
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);

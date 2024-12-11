@@ -1,5 +1,7 @@
 import { prisma } from '@/config/prisma.config.js';
-import { ResetPasswordToken } from '@prisma/client';
+import { Prisma, ResetPasswordToken } from '@prisma/client';
+import BatchPayload = Prisma.BatchPayload;
+import ResetPasswordTokenWhereInput = Prisma.ResetPasswordTokenWhereInput;
 
 export class ResetPasswordTokenPrismaService {
 	async getResetPasswordToken(token: string): Promise<ResetPasswordToken | null> {
@@ -16,11 +18,11 @@ export class ResetPasswordTokenPrismaService {
 				userId,
 			},
 			update: {
-				token: token,
+				token,
 			},
 			create: {
-				token: token,
-				userId: userId,
+				token,
+				userId,
 			},
 		});
 	}
@@ -28,8 +30,14 @@ export class ResetPasswordTokenPrismaService {
 	async deleteResetPasswordToken(token: string): Promise<ResetPasswordToken> {
 		return prisma.resetPasswordToken.delete({
 			where: {
-				token: token,
+				token,
 			},
+		});
+	}
+
+	async deleteResetPasswordTokens(where: ResetPasswordTokenWhereInput): Promise<BatchPayload> {
+		return prisma.resetPasswordToken.deleteMany({
+			where: where,
 		});
 	}
 }

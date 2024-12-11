@@ -1,6 +1,10 @@
-import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
+import {
+	ACCESS_TOKEN_LIFETIME,
+	REFRESH_TOKEN_LIFETIME,
+	RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME
+} from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import { StatusCodeError } from '@/errors/status-code.error.js';
+import { StatusError } from '@/errors/status.error.js';
 import { JwtVerifyRejectJwtInterface } from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
 import { JwtVerifyResolveJwtInterface } from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
 import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
@@ -27,7 +31,7 @@ export class JwtService {
 				},
 			},
 			ACCESS_TOKEN_SECRET,
-			{ expiresIn: '1h' },
+			{ expiresIn: ACCESS_TOKEN_LIFETIME },
 		);
 	}
 
@@ -61,7 +65,7 @@ export class JwtService {
 						}
 					}
 
-					throw new StatusCodeError('Refresh token expired, or not valid.', 403);
+					throw new StatusError('Refresh token expired, or not valid.', 403);
 				}
 
 				return resolve(decoded);
@@ -77,7 +81,7 @@ export class JwtService {
 				},
 			},
 			ACCESS_TOKEN_SECRET,
-			{ expiresIn: '1h' },
+			{ expiresIn: VERIFY_EMAIL_TOKEN_LIFETIME },
 		);
 	}
 
@@ -89,7 +93,7 @@ export class JwtService {
 						message: 'Verify email token expired, or not valid.',
 					});
 
-					return reject(new StatusCodeError('Verify email token expired, or not valid.', 401));
+					return reject(new StatusError('Verify email token expired, or not valid.', 401));
 				}
 
 				return resolve(decoded);
@@ -105,7 +109,7 @@ export class JwtService {
 				},
 			},
 			ACCESS_TOKEN_SECRET,
-			{ expiresIn: '1h' },
+			{ expiresIn: RESET_PASSWORD_TOKEN_LIFETIME },
 		);
 	}
 
@@ -128,7 +132,7 @@ export class JwtService {
 						}
 					}
 
-					return reject(new StatusCodeError('Reset password token expired, or not valid.', 401));
+					return reject(new StatusError('Reset password token expired, or not valid.', 401));
 				}
 
 				return resolve(decoded);

@@ -5,6 +5,7 @@ import BatchPayload = Prisma.BatchPayload;
 import UserTokenUncheckedCreateInput = Prisma.UserTokenUncheckedCreateInput;
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
+import UserTokenWhereInput = Prisma.UserTokenWhereInput;
 
 export class UserTokenPrismaService {
 	async getUserTokenByToken(token: string, include: UserTokenInclude): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
@@ -30,11 +31,9 @@ export class UserTokenPrismaService {
 		});
 	}
 
-	async deleteAllUserUserTokens(userId: string): Promise<BatchPayload> {
+	async deleteUserTokens(where: UserTokenWhereInput): Promise<BatchPayload> {
 		return prisma.userToken.deleteMany({
-			where: {
-				userId,
-			},
+			where: where
 		});
 	}
 }

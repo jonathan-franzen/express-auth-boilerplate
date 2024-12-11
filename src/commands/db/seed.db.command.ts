@@ -17,6 +17,13 @@ function getUsers(): UserCreateInput[] {
 			roles: ['USER', 'ADMIN'],
 			password: 'admin',
 		},
+		{
+			email: 'user@email.com',
+			firstName: 'Don',
+			lastName: 'Joe',
+			roles: ['USER'],
+			password: 'user',
+		},
 	];
 }
 

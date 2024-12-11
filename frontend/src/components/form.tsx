@@ -1,8 +1,9 @@
 'use client';
 
 import Button from '@/components/button';
-import { FormPropsReactInterface } from '@/interfaces/react/form-props.react.interface';
+import FormPropsReactInterface from '@/interfaces/react/form-props.react.interface';
 import clsx from 'clsx';
+import NextForm from 'next/form';
 import { ChangeEvent, FormEvent, ReactElement, useState } from 'react';
 
 export default function Form({ fields, submitLabel, onSubmit, isLoading = false, additionalContent }: FormPropsReactInterface): ReactElement {
@@ -26,7 +27,7 @@ export default function Form({ fields, submitLabel, onSubmit, isLoading = false,
 	};
 
 	return (
-		<form onSubmit={handleOnSubmit} className='w-full flex flex-col mt-8'>
+		<NextForm action='/login' onSubmit={handleOnSubmit} className='mt-8 flex w-full flex-col'>
 			{fields.map((field) => (
 				<div key={field.name} className='mt-2'>
 					<input
@@ -39,7 +40,7 @@ export default function Form({ fields, submitLabel, onSubmit, isLoading = false,
 						value={formData[field.name] || ''}
 						onChange={handleOnChange}
 						className={clsx(
-							'mt-1.5 block w-full opacity-80 rounded-lg border-none bg-neutral-100 py-3 px-3 text-xs',
+							'mt-1.5 block w-full rounded-lg border-none bg-neutral-100 px-3 py-3 text-xs opacity-80',
 							'focus:outline-none data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-gray-400',
 						)}
 					/>
@@ -48,10 +49,10 @@ export default function Form({ fields, submitLabel, onSubmit, isLoading = false,
 			{additionalContent && <div className='mt-2'>{additionalContent}</div>}
 			<Button label={submitLabel} type='submit' isLoading={isLoading} className='mt-6' />
 			{errorMessage && (
-				<div className='bg-pink-50 p-2 mt-2 flex items-center gap-3 rounded-md'>
+				<div className='mt-2 flex items-center gap-3 rounded-md bg-pink-50 p-2'>
 					<div className='text-2xs text-pink-900'>{errorMessage}</div>
 				</div>
 			)}
-		</form>
+		</NextForm>
 	);
 }

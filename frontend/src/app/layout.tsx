@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import '@/app/globals.css';
 import { ReactElement, ReactNode } from 'react';
 
 export const metadata: Metadata = {
-	title: 'Express Auth Boilerplate',
-	description: 'Frontend DEMO to showcase Express Auth Boilerplate',
+	title: 'Next External Auth Boilerplate',
+	description: 'Boilerplate for Next.js Authentication with external API',
 };
 
 export default function RootLayout({
@@ -15,8 +15,8 @@ export default function RootLayout({
 	return (
 		<html lang='en'>
 			<body>
-				<main className='flex flex-col gap-8 row-start-2 items-center h-screen justify-center'>
-					<div className='px-8 w-96 flex flex-col py-16 border border-black min-h-[600px]'>{children}</div>
+				<main className='row-start-2 flex h-screen flex-col items-center justify-center gap-8'>
+					<div className='flex h-[600px] w-96 flex-col border border-black px-8 py-16'>{children}</div>
 				</main>
 			</body>
 		</html>

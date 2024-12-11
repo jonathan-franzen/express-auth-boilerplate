@@ -1,19 +1,14 @@
-import { axiosPublic } from '@/config/axios.config';
-import { axiosRequest } from '@/utils/axios-request';
+import apiService from '@/services/api';
+import apiRouteErrorHandler from '@/utils/api-route-error-handler';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
 	try {
-		const verifyEmailData: { verifyEmailToken: string }  = await request.json();
+		const { verifyEmailToken }: { verifyEmailToken: string } = await request.json();
 
-		await axiosRequest<void>(axiosPublic, {
-			method: 'POST',
-			url: `/verify-email/${verifyEmailData.verifyEmailToken}`,
-		});
-
-		return NextResponse.json({ message: 'Email verified successfully' }, { status: 200 });
-	} catch (error) {
-		console.error('Email verification failed:', error);
-		return NextResponse.json({ message: 'Unable to verify email', error }, { status: 500 });
+		await apiService.postVerifyEmail(verifyEmailToken);
+		return NextResponse.json({ message: 'Email verified.' }, { status: 200 });
+	} catch (err) {
+		return apiRouteErrorHandler(err, 'Unable to verify email.');
 	}
 }

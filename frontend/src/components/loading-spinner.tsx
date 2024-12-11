@@ -9,7 +9,7 @@ export default function LoadingSpinner({ size }: LoadingSpinnerProps): ReactElem
 	return (
 		<div
 			className={clsx(
-				'block animate-spinner rounded-full',
+				'animate-spinner block rounded-full',
 				size === 'sm'
 					? 'h-4 w-4 border-2'
 					: size === 'md'

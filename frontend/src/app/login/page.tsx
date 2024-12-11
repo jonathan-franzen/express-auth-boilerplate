@@ -1,4 +1,5 @@
 import LoginForm from '@/components/login-form';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 
 export default function LoginPage(): ReactElement {
@@ -6,11 +7,11 @@ export default function LoginPage(): ReactElement {
 		<>
 			<h1 className='text-center text-sm font-semibold text-gray-700'>SIGN INTO YOUR ACCOUNT</h1>
 			<LoginForm />
-			<h3 className='text-center text-xs text-gray-700 mt-4'>Don't have an account?</h3>
+			<h3 className='mt-4 text-center text-xs text-gray-700'>Don't have an account?</h3>
 			<div className='flex justify-center'>
-				<a href='/register' className='w-fit text-xs text-pink-900 hover:text-pink-700'>
+				<Link href='/register' className='w-fit text-xs text-pink-900 hover:text-pink-700'>
 					Sign up
-				</a>
+				</Link>
 			</div>
 		</>
 	);

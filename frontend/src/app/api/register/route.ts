@@ -1,21 +1,16 @@
-import { axiosPublic } from '@/config/axios.config';
-import { RegisterAuthBackendInterface } from '@/interfaces/backend/auth/register.auth.backend.interface';
-import { axiosRequest } from '@/utils/axios-request';
+import RegisterRequestAuthApiInterface from '@/interfaces/api/auth/request/register.request.auth.api.interface';
+import apiService from '@/services/api';
+import apiRouteErrorHandler from '@/utils/api-route-error-handler';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
 	try {
-		const registerData: RegisterAuthBackendInterface = await request.json();
+		const registerData: RegisterRequestAuthApiInterface = await request.json();
 
-		await axiosRequest<void>(axiosPublic, {
-			method: 'POST',
-			url: '/register',
-			data: registerData,
-		});
+		await apiService.postRegister(registerData);
 
-		return NextResponse.json({ message: 'Registered successful' }, { status: 200 });
-	} catch (error) {
-		console.error('Registration failed:', error);
-		return NextResponse.json({ message: 'Unable to register', error }, { status: 500 });
+		return NextResponse.json({ message: 'Registered.' }, { status: 201 });
+	} catch (err) {
+		return apiRouteErrorHandler(err, 'Unable to register.');
 	}
 }

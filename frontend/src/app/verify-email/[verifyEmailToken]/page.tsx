@@ -1,5 +1,5 @@
-import { Params } from 'next/dist/server/request/params';
 import VerifyEmail from '@/components/verify-email';
+import { Params } from 'next/dist/server/request/params';
 
 export default async function VerifyEmailTokenPage(props: { params: Promise<Params> }) {
 	const params = await props.params;

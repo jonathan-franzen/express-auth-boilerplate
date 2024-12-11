@@ -37,7 +37,7 @@ export default function VerifyEmail({ verifyEmailToken }: { verifyEmailToken: st
 		return (
 			<>
 				<h1 className='text-center text-sm font-semibold text-gray-700'>ERROR VERIFYING EMAIL</h1>
-				<div className='flex justify-center mt-4'>
+				<div className='mt-4 flex justify-center'>
 					<a href='/login' className='w-fit text-xs text-pink-900 hover:text-pink-700'>
 						Back to login
 					</a>

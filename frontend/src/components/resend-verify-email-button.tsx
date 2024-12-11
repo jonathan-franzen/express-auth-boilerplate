@@ -3,7 +3,7 @@
 import Button from '@/components/button';
 import { ReactElement, useState } from 'react';
 
-export default function ResendVerifyEmailButton({email}: {email: string}): ReactElement {
+export default function ResendVerifyEmailButton({ email }: { email: string }): ReactElement {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleOnClick: () => Promise<void> = async (): Promise<void> => {
@@ -11,7 +11,7 @@ export default function ResendVerifyEmailButton({email}: {email: string}): React
 		try {
 			const response = await fetch('/api/resend-verify-email', {
 				method: 'POST',
-				body: JSON.stringify(email),
+				body: JSON.stringify({ email }),
 				headers: {
 					'Content-Type': 'application/json',
 				},

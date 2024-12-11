@@ -12,7 +12,7 @@ const config = {
 	importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
 	importOrderTypeScriptVersion: '5.0.0',
 	importOrderCaseSensitive: false,
-	plugins: ['@ianvs/prettier-plugin-sort-imports'],
+	plugins: ['@ianvs/prettier-plugin-sort-imports', 'prettier-plugin-tailwindcss'],
 };
 
 export default config;

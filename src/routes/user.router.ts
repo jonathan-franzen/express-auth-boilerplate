@@ -1,6 +1,5 @@
 import { userController } from '@/controllers/user/index.js';
 import { UserRequestExpressInterface } from '@/interfaces/express/user-request.express.interface.js';
-import { UserSyncMiddlewareExpressInterface } from '@/interfaces/express/user-sync-middleware.express.interface.js';
 import { expressValidatorMiddleware } from '@/middlewares/express-validator.middleware.js';
 import { verifyRolesMiddleware } from '@/middlewares/verify-roles.middleware.js';
 import { asyncHandler } from '@/utils/async-handler.js';
@@ -29,7 +28,8 @@ userRouter.patch(
 
 userRouter.get(
 	'/',
-	(): UserSyncMiddlewareExpressInterface => verifyRolesMiddleware(Role.ADMIN),
+	// @ts-ignore
+	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getAllUsers(req, res);
 	}),
@@ -38,7 +38,8 @@ userRouter.get(
 userRouter.get(
 	'/:id',
 	expressValidatorMiddleware(getIdUserValidator()),
-	(): UserSyncMiddlewareExpressInterface => verifyRolesMiddleware(Role.ADMIN),
+	// @ts-ignore
+	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getUserById(req, res);
 	}),
@@ -47,7 +48,8 @@ userRouter.get(
 userRouter.delete(
 	'/:id',
 	expressValidatorMiddleware(deleteIdUserValidator()),
-	(): UserSyncMiddlewareExpressInterface => verifyRolesMiddleware(Role.ADMIN),
+	// @ts-ignore
+	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.deleteUser(req, res);
 	}),
