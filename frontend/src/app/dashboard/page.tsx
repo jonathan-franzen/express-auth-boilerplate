@@ -1,5 +1,6 @@
 'use server';
 
+import { RolesEnum } from '@/app/enums/roles.enum';
 import LogoutButton from '@/components/logout-button';
 import MeResponseUsersApiInterface from '@/interfaces/api/users/response/me.response.users.api.interface';
 import cookieService from '@/services/cookie';
@@ -24,7 +25,7 @@ export default async function DashboardPage(): Promise<ReactElement> {
 			<div>
 				<LogoutButton />
 				<div className='mt-2 flex justify-center'>
-					{me.roles.includes('ADMIN') ? (
+					{me.roles.includes(RolesEnum.ADMIN) ? (
 						<Link href='/admin' className='w-fit text-xs text-pink-900 hover:text-pink-700'>
 							View admin page
 						</Link>

@@ -66,7 +66,7 @@ export default class CookieService {
 		const meCookie = await this.getCookie('meData');
 
 		if (!meCookie) {
-			redirect('/login');
+			return redirect('/login');
 		}
 
 		const me: MeResponseUsersApiInterface = JSON.parse(meCookie);

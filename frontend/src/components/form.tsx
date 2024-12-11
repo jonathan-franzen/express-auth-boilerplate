@@ -1,7 +1,7 @@
 'use client';
 
 import Button from '@/components/button';
-import FormPropsReactInterface from '@/interfaces/react/form-props.react.interface';
+import FormPropsReactInterface from '@/interfaces/react/props/form.props.react.interface';
 import clsx from 'clsx';
 import NextForm from 'next/form';
 import { ChangeEvent, FormEvent, ReactElement, useState } from 'react';

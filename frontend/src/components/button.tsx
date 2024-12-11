@@ -1,4 +1,5 @@
-import ButtonPropsReactInterface from '@/interfaces/react/button-props.react.interface';
+import LoadingSpinner from '@/components/loading-spinner';
+import ButtonPropsReactInterface from '@/interfaces/react/props/button.props.react.interface';
 import { ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -14,7 +15,7 @@ export default function Button({ label, type = 'button', isLoading = false, disa
 				className,
 			)}
 		>
-			{isLoading ? 'Loading...' : label}
+			{isLoading ? <LoadingSpinner size='lg' /> : label}
 		</button>
 	);
 }

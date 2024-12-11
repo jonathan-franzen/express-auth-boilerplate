@@ -1,6 +1,6 @@
 import { refreshTokenFragmentValidator } from '@/validators/fragments/refreshToken.fragment.validator.js';
 import { ValidationChain } from 'express-validator';
 
-export function logoutAuthValidator(): ValidationChain[] {
+export function deleteLogoutAuthValidator(): ValidationChain[] {
 	return [...refreshTokenFragmentValidator()];
 }

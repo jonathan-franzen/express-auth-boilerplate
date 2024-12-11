@@ -4,14 +4,14 @@ import {
 	RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME
 } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import { StatusError } from '@/errors/status.error.js';
 import { JwtVerifyRejectJwtInterface } from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
 import { JwtVerifyResolveJwtInterface } from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
 import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { Prisma, Role } from '@prisma/client';
-import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
+import jwt, { JwtPayload, TokenExpiredError, VerifyErrors } from 'jsonwebtoken';
+import { Response } from 'express';
 
 import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
@@ -41,10 +41,22 @@ export class JwtService {
 		});
 	}
 
-	verifyRefreshToken(token: string, deleteTokenOnError: boolean): Promise<JwtPayload> {
+	verifyRefreshToken(res: Response, token: string, deleteTokenOnError: boolean): Promise<JwtPayload> {
 		return new Promise((resolve: JwtVerifyResolveJwtInterface, reject: JwtVerifyRejectJwtInterface): void => {
 			jwt.verify(token, REFRESH_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || typeof decoded !== 'object' || !decoded.email) {
+					if (deleteTokenOnError) {
+						try {
+							await this.userTokenPrismaService.deleteUserToken(token);
+						} catch (err) {
+							if (!(err instanceof PrismaClientUnknownRequestError)) {
+								logger.alert({ message: 'Failed to delete invalid refresh token.', context: err });
+
+								return reject(res.status(500).json({ error: 'Internal server error.' }));
+							}
+						}
+					}
+
 					logger.warning({
 						message: 'Refresh token expired, or not valid.',
 						context: {
@@ -53,19 +65,7 @@ export class JwtService {
 						},
 					});
 
-					if (deleteTokenOnError) {
-						try {
-							await this.userTokenPrismaService.deleteUserToken(token);
-						} catch (err) {
-							if (!(err instanceof PrismaClientUnknownRequestError)) {
-								logger.error({ message: 'Failed to delete invalid refresh token.', context: err });
-
-								return reject(err);
-							}
-						}
-					}
-
-					throw new StatusError('Refresh token expired, or not valid.', 403);
+					return reject(res.status(401).json({ error: 'Token invalid.' }));
 				}
 
 				return resolve(decoded);
@@ -85,15 +85,19 @@ export class JwtService {
 		);
 	}
 
-	async verifyVerifyEmailToken(token: string): Promise<JwtPayload> {
+	async verifyVerifyEmailToken(res: Response, token: string): Promise<JwtPayload> {
 		return new Promise((resolve: JwtVerifyResolveJwtInterface, reject: JwtVerifyRejectJwtInterface): void => {
 			jwt.verify(token, ACCESS_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || typeof decoded !== 'object' || !decoded.verifyEmail.email) {
 					logger.warning({
 						message: 'Verify email token expired, or not valid.',
+						context: {
+							decoded,
+							err,
+						},
 					});
 
-					return reject(new StatusError('Verify email token expired, or not valid.', 401));
+					return reject(res.status(401).json({ error: 'Token invalid.' }));
 				}
 
 				return resolve(decoded);
@@ -113,26 +117,36 @@ export class JwtService {
 		);
 	}
 
-	async verifyResetPasswordToken(token: string): Promise<JwtPayload> {
+	async verifyResetPasswordToken(res: Response ,token: string): Promise<JwtPayload> {
 		return new Promise((resolve: JwtVerifyResolveJwtInterface, reject: JwtVerifyRejectJwtInterface): void => {
 			jwt.verify(token, ACCESS_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || !decoded || typeof decoded !== 'object' || !decoded.resetPassword?.email) {
-					logger.warning({
-						message: 'Reset password token expired, or not valid.',
-						context: { token },
-					});
 
 					try {
 						await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token);
 					} catch (err) {
 						if (!(err instanceof PrismaClientUnknownRequestError)) {
-							logger.error({ message: 'Failed to delete invalid reset password token.', context: err });
+							logger.alert({ message: 'Failed to delete invalid reset password token.', context: { error: err } });
 
-							return reject(err);
+							return reject(res.status(500).json({ error: 'Internal server error.' }));
 						}
 					}
 
-					return reject(new StatusError('Reset password token expired, or not valid.', 401));
+					if (err instanceof TokenExpiredError) {
+						logger.info({
+							message: 'Reset password token expired.',
+							context: { token },
+						});
+
+						return reject(res.status(410).json({ error: 'Token expired.' }));
+					} else {
+						logger.warning({
+							message: 'Reset password token not valid, or error occurred.',
+							context: { token },
+						});
+
+						return reject(res.status(401).json({ error: 'Token invalid.' }));
+					}
 				}
 
 				return resolve(decoded);

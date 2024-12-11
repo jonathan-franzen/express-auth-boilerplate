@@ -15,10 +15,10 @@ export class UserController {
 		const users: UserGetPayload<{ omit: { password: true } }>[] | null = await this.userPrismaService.getAllUsers({ password: true });
 
 		if (!users) {
-			return res.status(204).json({ message: 'No users found.' });
+			return res.sendStatus(204);
 		}
 
-		return res.json(users);
+		return res.status(200).json({ message:'Success.', users });
 	}
 
 	async getUserById(req: Request, res: Response): Promise<Response> {
@@ -34,10 +34,10 @@ export class UserController {
 				},
 			});
 
-			throw new StatusError(`User ID ${id} not found.`, 404);
+			return res.status(404).json({ error: 'Not found.' });
 		}
 
-		return res.json(user);
+		return res.status(200).json({message:'Success.', user});
 	}
 
 	async deleteUser(req: Request, res: Response): Promise<Response> {
@@ -49,20 +49,22 @@ export class UserController {
 			return res.sendStatus(204);
 		} catch (err) {
 			if (err instanceof PrismaClientUnknownRequestError) {
-				throw new StatusError(`User ID ${id} not found.`, 404);
+				return res.status(404).json({ error: 'Not found.' });
 			} else {
-				throw err;
+				logger.alert({ message: 'Failed to delete user.', context: {userId: id} });
+
+				return res.status(500).json({ error: 'Internal server error.' });
 			}
 		}
 	}
 
 	async getMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
 		if (!req.user) {
-			return res.status(401).json({ message: 'Unauthorized.' });
+			return res.status(401).json({ error: 'Unauthorized.' });
 		}
 
 		const { createdAt, updatedAt, ...me } = req.user;
-		return res.json(me);
+		return res.status(200).json({message: 'Success.', me});
 	}
 
 	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
@@ -78,10 +80,10 @@ export class UserController {
 			});
 
 			if (duplicate) {
-				return res.status(409).json({ message: 'Email already exists.' });
+				return res.status(409).json({ error: 'Email already in use.' });
 			}
 		}
 		const me: User = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
-		return res.json(me);
+		return res.status(200).json({message: 'Success.', me});
 	}
 }

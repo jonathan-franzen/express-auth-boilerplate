@@ -16,7 +16,7 @@ export default async function VerifyEmailPage(): Promise<ReactElement> {
 			</div>
 			<p className='mt-12 text-center text-sm font-semibold text-gray-700'>Have you not received the email?</p>
 			<ResendVerifyEmailButton email={me.email} />
-			<div className='mt-4 flex justify-center'>
+			<div className='flex justify-center'>
 				<LogoutButton />
 			</div>
 		</>

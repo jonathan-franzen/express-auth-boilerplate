@@ -1,6 +1,7 @@
 'use client';
 
 import Button from '@/components/button';
+import internalApiService from '@/services/internal-api';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 
@@ -11,23 +12,10 @@ export default function LogoutButton(): ReactElement {
 	const handleOnClick: () => Promise<void> = async (): Promise<void> => {
 		setIsLoading(true);
 		try {
-			const response = await fetch('/api/logout', {
-				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to logout');
-			}
-
-			console.log('Logout successful');
-
+			await internalApiService.deleteLogout();
 			router.push('/login');
-		} catch (error) {
-			console.error('Unable to logout', error);
 		} finally {
+			router.push('/login');
 			setIsLoading(false);
 		}
 	};

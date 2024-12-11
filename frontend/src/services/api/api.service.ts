@@ -68,7 +68,7 @@ export default class ApiService {
 		return await this.axiosRequest<T>(config);
 	}
 
-	async postRegister(data: RegisterRequestAuthApiInterface) {
+	async postRegister(data: RegisterRequestAuthApiInterface): Promise<void> {
 		const config = {
 			method: 'POST',
 			url: '/register',
@@ -78,7 +78,7 @@ export default class ApiService {
 		return await this.axiosRequest<void>(config);
 	}
 
-	async postVerifyEmail(verifyEmailToken: string) {
+	async postVerifyEmail(verifyEmailToken: string): Promise<void> {
 		const config = {
 			method: 'POST',
 			url: `/verify-email/${verifyEmailToken}`,
@@ -87,7 +87,7 @@ export default class ApiService {
 		return await this.axiosRequest<void>(config);
 	}
 
-	async postResendVerifyEmail(data: ResendVerifyEmailRequestAuthApiInterface) {
+	async postResendVerifyEmail(data: ResendVerifyEmailRequestAuthApiInterface): Promise<void> {
 		const config = {
 			method: 'POST',
 			url: '/resend-verify-email',
@@ -97,7 +97,7 @@ export default class ApiService {
 		return await this.axiosRequest<void>(config);
 	}
 
-	async postLogin(data: LoginRequestAuthApiInterface) {
+	async postLogin(data: LoginRequestAuthApiInterface): Promise<LoginResponseAuthApiInterface> {
 		const config = {
 			method: 'POST',
 			url: '/login',
@@ -108,7 +108,7 @@ export default class ApiService {
 		return await this.axiosRequest<LoginResponseAuthApiInterface>(config, true);
 	}
 
-	async postRefresh(res: NextResponse) {
+	async postRefresh(res: NextResponse): Promise<RefreshResponseAuthApiInterface> {
 		const config = {
 			method: 'POST',
 			url: '/refresh',
@@ -119,7 +119,7 @@ export default class ApiService {
 		return await this.axiosRequest<RefreshResponseAuthApiInterface>(config, true, res);
 	}
 
-	async postSendResetPasswordEmail(data: SendResetPasswordEmailRequestAuthApiInterface) {
+	async postSendResetPasswordEmail(data: SendResetPasswordEmailRequestAuthApiInterface): Promise<void> {
 		const config = {
 			method: 'POST',
 			url: '/reset-password',
@@ -129,7 +129,16 @@ export default class ApiService {
 		return await this.axiosRequest<void>(config);
 	}
 
-	async postResetPassword(resetPasswordToken: string, data: ResetPasswordRequestAuthApiInterface) {
+	async getVerifyResetPasswordToken(resetPasswordToken: string): Promise<void> {
+		const config = {
+			method: 'GET',
+			url: `/reset-password/${resetPasswordToken}`,
+		};
+
+		return await this.axiosRequest<void>(config);
+	}
+
+	async postResetPassword(resetPasswordToken: string, data: ResetPasswordRequestAuthApiInterface): Promise<void> {
 		const config = {
 			method: 'POST',
 			url: `/reset-password/${resetPasswordToken}`,
@@ -139,7 +148,7 @@ export default class ApiService {
 		return await this.axiosRequest<void>(config);
 	}
 
-	async deleteLogout() {
+	async deleteLogout(): Promise<void> {
 		const config = {
 			method: 'DELETE',
 			url: '/logout',
@@ -147,18 +156,18 @@ export default class ApiService {
 			withCredentials: true,
 		};
 
-		return await this.axiosRequest<RefreshResponseAuthApiInterface>(config);
+		return await this.axiosRequest<void>(config);
 	}
 
 	// /users start here
 
-	async getUsers() {
+	async getUsers(): Promise<UserResponseUsersApiInterface[]> {
 		const config = { url: '/users', method: 'GET' };
 
 		return await this.authenticatedApiRequest<UserResponseUsersApiInterface[]>(config);
 	}
 
-	async getMeUsers(accessToken: string) {
+	async getMeUsers(accessToken: string): Promise<MeResponseUsersApiInterface> {
 		const config = {
 			url: '/users/me',
 			method: 'GET',

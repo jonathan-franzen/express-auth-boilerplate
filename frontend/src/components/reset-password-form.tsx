@@ -1,26 +1,17 @@
 'use client';
 
 import Form from '@/components/form';
+import ResetPasswordRequestAuthApiInterface from '@/interfaces/api/auth/request/reset-password.request.auth.api.interface';
+import internalApiService from '@/services/internal-api';
 import { ReactElement, useState } from 'react';
 
 export default function ResetPasswordForm({ resetPasswordToken }: { resetPasswordToken: string }): ReactElement {
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleSubmit = async (formData: Record<string, string>) => {
+	const handleOnSubmit = async (formData: Record<string, any>) => {
 		setIsLoading(true);
 		try {
-			const response = await fetch('/api/reset-password', {
-				method: 'POST',
-				body: JSON.stringify({ ...formData, resetPasswordToken }),
-				headers: { 'Content-Type': 'application/json' },
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to reset password');
-			}
-		} catch (error: any) {
-			console.error('Unable to reset password', error);
-			throw new Error(error.message || 'Something went wrong.');
+			await internalApiService.postResetPassword({ ...(formData as ResetPasswordRequestAuthApiInterface), resetPasswordToken });
 		} finally {
 			setIsLoading(false);
 		}
@@ -30,7 +21,7 @@ export default function ResetPasswordForm({ resetPasswordToken }: { resetPasswor
 		<Form
 			fields={[{ name: 'password', type: 'password', placeholder: 'New password', autoComplete: 'current-password', required: true }]}
 			submitLabel='UPDATE PASSWORD'
-			onSubmit={handleSubmit}
+			onSubmit={handleOnSubmit}
 			isLoading={isLoading}
 		/>
 	);

@@ -4,7 +4,7 @@ import { lastNameFragmentValidator } from '@/validators/fragments/last-name.frag
 import { passwordFragmentValidator } from '@/validators/fragments/password.fragment.validator.js';
 import { ValidationChain } from 'express-validator';
 
-export function registerAuthValidator(): ValidationChain[] {
+export function postRegisterAuthValidator(): ValidationChain[] {
 	return [
 		...emailFragmentValidator({ optional: false }),
 		...passwordFragmentValidator({ includeStrongCheck: true }),

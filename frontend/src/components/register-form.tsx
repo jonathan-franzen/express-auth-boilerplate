@@ -1,6 +1,8 @@
 'use client';
 
 import Form from '@/components/form';
+import RegisterRequestAuthApiInterface from '@/interfaces/api/auth/request/register.request.auth.api.interface';
+import internalApiService from '@/services/internal-api';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 
@@ -8,22 +10,14 @@ export default function RegisterForm(): ReactElement {
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
-	const handleSubmit = async (formData: Record<string, string>) => {
+	const handleOnSubmit = async (formData: Record<string, any>) => {
 		setIsLoading(true);
-		try {
-			const response = await fetch('/api/register', {
-				method: 'POST',
-				body: JSON.stringify(formData),
-				headers: { 'Content-Type': 'application/json' },
-			});
+		const { email, password } = formData;
 
-			if (!response.ok) {
-				throw new Error('Failed to register');
-			}
-			router.push('/login');
-		} catch (error: any) {
-			console.error('Unable to register', error);
-			throw new Error(error.message || 'Something went wrong.');
+		try {
+			await internalApiService.postRegister(formData as RegisterRequestAuthApiInterface);
+			await internalApiService.postLogin({ email, password });
+			router.push('/verify-email');
 		} finally {
 			setIsLoading(false);
 		}
@@ -39,7 +33,7 @@ export default function RegisterForm(): ReactElement {
 					{ name: 'password', type: 'password', placeholder: 'Password', autoComplete: 'new-password', required: true },
 				]}
 				submitLabel='SIGN UP'
-				onSubmit={handleSubmit}
+				onSubmit={handleOnSubmit}
 				isLoading={isLoading}
 			/>
 		</>

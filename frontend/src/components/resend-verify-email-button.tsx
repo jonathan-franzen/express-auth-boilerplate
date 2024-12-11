@@ -1,6 +1,7 @@
 'use client';
 
 import Button from '@/components/button';
+import internalApiService from '@/services/internal-api';
 import { ReactElement, useState } from 'react';
 
 export default function ResendVerifyEmailButton({ email }: { email: string }): ReactElement {
@@ -9,21 +10,9 @@ export default function ResendVerifyEmailButton({ email }: { email: string }): R
 	const handleOnClick: () => Promise<void> = async (): Promise<void> => {
 		setIsLoading(true);
 		try {
-			const response = await fetch('/api/resend-verify-email', {
-				method: 'POST',
-				body: JSON.stringify({ email }),
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to resend email');
-			}
-
-			console.log('Resent email successful');
-		} catch (error) {
-			console.error('Unable to resend email', error);
+			await internalApiService.postResendVerifyEmail({ email });
+		} catch {
+			// ToDO: Handle error
 		} finally {
 			setIsLoading(false);
 		}

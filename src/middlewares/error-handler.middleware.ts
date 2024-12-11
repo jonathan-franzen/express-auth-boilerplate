@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 
 export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (err: Error, req: Request, res: Response): Response | void => {
 	if (err instanceof StatusError) {
-		return res.status(err.status).json({ message: err.message });
+		return res.status(err.status).json({ error: err.message });
 	} else {
 		logger.alert({
 			message: 'Something unexpected happened.',
@@ -15,6 +15,6 @@ export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (e
 				stack: err.stack,
 			},
 		});
-		return res.status(500).json({ message: err.message || 'Internal Server Error.' });
+		return res.status(500).json({ error: 'Internal Server Error.' });
 	}
 };

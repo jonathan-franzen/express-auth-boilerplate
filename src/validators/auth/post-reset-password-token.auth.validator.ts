@@ -2,6 +2,6 @@ import { passwordFragmentValidator } from '@/validators/fragments/password.fragm
 import { resetPasswordTokenFragmentValidator } from '@/validators/fragments/reset-password-token.fragment.validator.js';
 import { ValidationChain } from 'express-validator';
 
-export function resetPasswordAuthValidator(): ValidationChain[] {
+export function postResetPasswordTokenAuthValidator(): ValidationChain[] {
 	return [...resetPasswordTokenFragmentValidator(), ...passwordFragmentValidator({ includeStrongCheck: true })];
 }

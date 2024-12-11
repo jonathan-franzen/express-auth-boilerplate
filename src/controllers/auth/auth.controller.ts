@@ -1,5 +1,4 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import { StatusError } from '@/errors/status.error.js';
 import { BcryptService } from '@/services/bcrypt/bcrypt.service.js';
 import { JwtService } from '@/services/jwt/jwt.service.js';
 import { MailerService } from '@/services/mailer/mailer.service.js';
@@ -42,7 +41,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusError('Email already in use.', 409);
+			return res.status(409).json({ error: 'Email already in use.' });
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -59,6 +58,7 @@ export class AuthController {
 		await this.mailerService.sendVerifyEmail(createdUser, verifyToken);
 
 		return res.status(201).json({
+			message: 'User successfully created.',
 			email: createdUser.email,
 		});
 	}
@@ -66,7 +66,7 @@ export class AuthController {
 	async verifyEmail(req: Request, res: Response): Promise<Response> {
 		const { verifyEmailToken } = req.params;
 
-		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
+		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(res, verifyEmailToken);
 		const email: string = decodedVerifyEmailToken.verifyEmail.email;
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -83,7 +83,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusError('User not found when verifying email.', 401);
+			return res.status(401).json({ error: 'Token invalid.' });
 		}
 
 		if (foundUser.emailVerifiedAt) {
@@ -93,7 +93,8 @@ export class AuthController {
 					email,
 				},
 			});
-			throw new StatusError('Email already verified.', 410);
+
+			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
 		await this.userPrismaService.updateUser(
@@ -103,7 +104,7 @@ export class AuthController {
 			},
 		);
 
-		return res.status(204).json({ message: 'Email verified.' });
+		return res.status(200).json({ message: 'Email successfully verified.' });
 	}
 
 	async resendVerifyEmail(req: Request, res: Response): Promise<Response> {
@@ -115,18 +116,18 @@ export class AuthController {
 		});
 
 		if (!user) {
-			throw new StatusError('User not found.', 404);
+			return res.status(200).json({ message: 'Email successfully sent.' });
 		}
 
 		if (user.emailVerifiedAt) {
-			throw new StatusError(`Email already verified.`, 409);
+			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
 
 		await this.mailerService.sendVerifyEmail(user, verifyToken);
 
-		return res.status(204).json({ message: 'Verification email sent.' });
+		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
 	async login(req: Request, res: Response): Promise<Response> {
@@ -137,13 +138,13 @@ export class AuthController {
 
 		if (!user) {
 			logger.warning({
-				message: 'User does not exist.',
+				message: 'Attempted login where user does not exist.',
 				context: {
 					email,
 				},
 			});
 
-			throw new StatusError('User does not exist.', 401);
+			return res.status(401).json({ error: 'Invalid credentials.' });
 		}
 
 		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
@@ -156,7 +157,7 @@ export class AuthController {
 				},
 			});
 
-			throw new StatusError('Incorrect password.', 401);
+			return res.status(401).json({ error: 'Invalid credentials.' });
 		}
 
 		if (refreshToken) {
@@ -173,7 +174,9 @@ export class AuthController {
 
 					await this.userTokenPrismaService.deleteUserTokens({userId: user.id});
 				} else {
-					throw err;
+					logger.error({ message: 'Failed to delete refresh token.', context: { error: err } });
+
+					return res.status(500).json({ error: 'Internal server error.' });
 				}
 			}
 		}
@@ -193,7 +196,7 @@ export class AuthController {
 			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
 		});
 
-		return res.json({ accessToken });
+		return res.status(200).json({ message: 'Login successful.', accessToken });
 	}
 
 	async refresh(req: Request, res: Response): Promise<Response> {
@@ -204,7 +207,7 @@ export class AuthController {
 		});
 
 		if (!userToken) {
-			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, false);
+			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(res, refreshToken, false);
 			const email: string = decodedRefreshToken.email;
 			const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
 				password: true,
@@ -224,10 +227,10 @@ export class AuthController {
 
 			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-			throw new StatusError('Refresh token invalid.', 403);
+			return res.status(401).json({ error: 'Token invalid.' });
 		}
 
-		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
+		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(res, refreshToken, true);
 
 		await this.userTokenPrismaService.deleteUserToken(refreshToken);
 
@@ -249,7 +252,7 @@ export class AuthController {
 			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
 		});
 
-		return res.json({ accessToken });
+		return res.status(200).json({ message: 'Refresh successful.', accessToken });
 	}
 
 	async sendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
@@ -261,7 +264,7 @@ export class AuthController {
 		});
 
 		if (!user) {
-			return res.status(204).json({ message: 'Reset password email sent.' });
+			return res.status(200).json({ message: 'Email successfully sent.' });
 		}
 
 		const resetPasswordToken: string = this.jwtService.signResetPasswordToken(user.email);
@@ -269,19 +272,18 @@ export class AuthController {
 		await this.resetPasswordTokenPrismaService.createOrUpdateResetPasswordToken(resetPasswordToken, user.id);
 
 		await this.mailerService.sendResetPasswordEmail(user, resetPasswordToken);
-		return res.status(204).json({ message: 'Reset password email sent.' });
+		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async resetPassword(req: Request, res: Response): Promise<Response> {
+	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
-		const { password } = req.body;
 
-		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
+		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(res, resetPasswordToken);
 		const email: string = decodedResetPasswordToken.resetPassword.email;
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			throw new StatusError('Token invalid.', 401);
+			return res.status(410).json({ error: 'Token expired.' });
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -290,14 +292,45 @@ export class AuthController {
 		});
 
 		if (!foundUser) {
-			logger.warning({
-				message: 'User not found.',
+			logger.error({
+				message: 'User not found when verifying reset password token.',
 				context: {
 					email,
 				},
 			});
 
-			throw new StatusError('User not found.', 401);
+			return res.status(401).json({ error: 'Token invalid.' });
+		}
+
+		return res.status(200).json({ message: "Token is valid." });
+	}
+
+	async resetPassword(req: Request, res: Response): Promise<Response> {
+		const { resetPasswordToken } = req.params;
+		const { password } = req.body;
+
+		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(res, resetPasswordToken);
+		const email: string = decodedResetPasswordToken.resetPassword.email;
+		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
+
+		if (!tokenExists) {
+			return res.status(410).json({ error: 'Token expired.' });
+		}
+
+		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			password: true,
+			roles: true,
+		});
+
+		if (!foundUser) {
+			logger.error({
+				message: 'User not found when resetting password.',
+				context: {
+					email,
+				},
+			});
+
+			return res.status(401).json({ error: 'Token invalid.' });
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -311,7 +344,7 @@ export class AuthController {
 
 		await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(resetPasswordToken);
 
-		return res.status(204).json({ message: 'Password has been updated.' });
+		return res.status(200).json({ message: 'Password successfully updated.' });
 	}
 
 	async logout(req: Request, res: Response): Promise<Response> {
@@ -321,11 +354,13 @@ export class AuthController {
 			await this.userTokenPrismaService.deleteUserToken(refreshToken);
 		} catch (err) {
 			if (!(err instanceof PrismaClientUnknownRequestError)) {
-				throw err;
+				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: err } });
+
+				return res.status(500).json({ error: 'Internal server error.' });
 			}
 		}
 
 		res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
-		return res.status(204).json({ message: 'Success' });
+		return res.sendStatus(204);
 	}
 }
