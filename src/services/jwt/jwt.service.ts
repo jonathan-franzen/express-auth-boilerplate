@@ -1,8 +1,4 @@
-import {
-	ACCESS_TOKEN_LIFETIME,
-	REFRESH_TOKEN_LIFETIME,
-	RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME
-} from '@/constants/auth.constants.js';
+import { ACCESS_TOKEN_LIFETIME, REFRESH_TOKEN_LIFETIME, RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
 import { JwtVerifyRejectJwtInterface } from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
 import { JwtVerifyResolveJwtInterface } from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
@@ -10,8 +6,8 @@ import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-passwor
 import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { Prisma, Role } from '@prisma/client';
-import jwt, { JwtPayload, TokenExpiredError, VerifyErrors } from 'jsonwebtoken';
 import { Response } from 'express';
+import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
 import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
@@ -117,11 +113,10 @@ export class JwtService {
 		);
 	}
 
-	async verifyResetPasswordToken(res: Response ,token: string): Promise<JwtPayload> {
+	async verifyResetPasswordToken(res: Response, token: string): Promise<JwtPayload> {
 		return new Promise((resolve: JwtVerifyResolveJwtInterface, reject: JwtVerifyRejectJwtInterface): void => {
 			jwt.verify(token, ACCESS_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || !decoded || typeof decoded !== 'object' || !decoded.resetPassword?.email) {
-
 					try {
 						await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token);
 					} catch (err) {
@@ -132,7 +127,7 @@ export class JwtService {
 						}
 					}
 
-					if (err instanceof TokenExpiredError) {
+					if (err instanceof jwt.TokenExpiredError) {
 						logger.info({
 							message: 'Reset password token expired.',
 							context: { token },

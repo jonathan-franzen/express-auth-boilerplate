@@ -33,7 +33,7 @@ export class UserTokenPrismaService {
 
 	async deleteUserTokens(where: UserTokenWhereInput): Promise<BatchPayload> {
 		return prisma.userToken.deleteMany({
-			where: where
+			where: where,
 		});
 	}
 }

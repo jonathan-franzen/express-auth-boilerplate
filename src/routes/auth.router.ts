@@ -1,8 +1,9 @@
 import { authController } from '@/controllers/auth/index.js';
 import { expressValidatorMiddleware } from '@/middlewares/express-validator.middleware.js';
 import { asyncHandler } from '@/utils/async-handler.js';
-import { postLoginAuthValidator } from '@/validators/auth/post-login.auth.validator.js';
 import { deleteLogoutAuthValidator } from '@/validators/auth/delete-logout.auth.validator.js';
+import { getResetPasswordTokenAuthValidator } from '@/validators/auth/get-reset-password-token.auth.validator.js';
+import { postLoginAuthValidator } from '@/validators/auth/post-login.auth.validator.js';
 import { postRefreshAuthValidator } from '@/validators/auth/post-refresh.auth.validator.js';
 import { postRegisterAuthValidator } from '@/validators/auth/post-register.auth.validator.js';
 import { postResendVerifyEmailAuthValidator } from '@/validators/auth/post-resend-verify-email.auth.validator.js';
@@ -10,7 +11,6 @@ import { postResetPasswordTokenAuthValidator } from '@/validators/auth/post-rese
 import { postResetPasswordAuthValidator } from '@/validators/auth/post-reset-password.auth.validator.js';
 import { postVerifyEmailTokenAuthValidator } from '@/validators/auth/post-verify-email-token.auth.validator.js';
 import express, { Request, Response, Router } from 'express';
-import { getResetPasswordTokenAuthValidator } from '@/validators/auth/get-reset-password-token.auth.validator.js';
 
 export const authRouter: Router = express.Router();
 
@@ -63,7 +63,7 @@ authRouter.post(
 );
 
 authRouter.get(
-	'/reset-password:resetPasswordToken',
+	'/reset-password/:resetPasswordToken',
 	expressValidatorMiddleware(getResetPasswordTokenAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await authController.verifyResetPasswordToken(req, res);

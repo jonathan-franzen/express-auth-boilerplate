@@ -172,7 +172,7 @@ export class AuthController {
 						},
 					});
 
-					await this.userTokenPrismaService.deleteUserTokens({userId: user.id});
+					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
 				} else {
 					logger.error({ message: 'Failed to delete refresh token.', context: { error: err } });
 
@@ -215,7 +215,7 @@ export class AuthController {
 			});
 
 			if (foundUser) {
-				await this.userTokenPrismaService.deleteUserTokens({userId: foundUser.id});
+				await this.userTokenPrismaService.deleteUserTokens({ userId: foundUser.id });
 
 				logger.alert({
 					message: 'Attempted reuse of refresh token mitigated.',
@@ -302,7 +302,7 @@ export class AuthController {
 			return res.status(401).json({ error: 'Token invalid.' });
 		}
 
-		return res.status(200).json({ message: "Token is valid." });
+		return res.status(200).json({ message: 'Token is valid.' });
 	}
 
 	async resetPassword(req: Request, res: Response): Promise<Response> {

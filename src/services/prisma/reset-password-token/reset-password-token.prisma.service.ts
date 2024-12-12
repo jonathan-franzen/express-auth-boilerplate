@@ -1,5 +1,6 @@
 import { prisma } from '@/config/prisma.config.js';
 import { Prisma, ResetPasswordToken } from '@prisma/client';
+
 import BatchPayload = Prisma.BatchPayload;
 import ResetPasswordTokenWhereInput = Prisma.ResetPasswordTokenWhereInput;
 

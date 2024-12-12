@@ -5,7 +5,6 @@ import { NextFunction, Response } from 'express';
 
 export function verifyRolesMiddleware(...allowedRoles: Role[]): UserSyncMiddlewareExpressInterface {
 	return (req: UserRequestExpressInterface, res: Response, next: NextFunction): Response | void => {
-
 		if (!req?.user?.roles) {
 			return res.status(401).json({ message: 'Unauthorized.' });
 		}
