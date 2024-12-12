@@ -7,7 +7,7 @@ export default function errorHandlerMiddleware(err: Error, req: Request, res: Re
 		return res.status(err.status).json({ error: err.message });
 	} else {
 		logger.alert({
-			message: 'Something unexpected happened.',
+			message: 'Internal Server Error.',
 			context: {
 				requestUrl: req.url,
 				error: err.message,

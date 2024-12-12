@@ -28,7 +28,7 @@ const logFormat: Format = printf(({ level, message, context, extra }: Transforma
 
 	if (typeof context !== 'object') {
 		console.error('Log message context wrong format.');
-		throw new StatusError('Something unexpected happened.', 500);
+		throw new StatusError('Internal Server Error.', 500);
 	}
 
 	context = {
