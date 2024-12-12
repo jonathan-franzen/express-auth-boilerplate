@@ -1,10 +1,10 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import { BcryptService } from '@/services/bcrypt/bcrypt.service.js';
-import { JwtService } from '@/services/jwt/jwt.service.js';
-import { MailerService } from '@/services/mailer/mailer.service.js';
-import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
-import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
-import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
+import BcryptService from '@/services/bcrypt/bcrypt.service.js';
+import JwtService from '@/services/jwt/jwt.service.js';
+import MailerService from '@/services/mailer/mailer.service.js';
+import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
+import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
+import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -12,10 +12,9 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
-import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 import UserGetPayload = Prisma.UserGetPayload;
 
-export class AuthController {
+export default class AuthController {
 	constructor(
 		private readonly jwtService: JwtService,
 		private readonly bcryptService: BcryptService,
@@ -164,7 +163,7 @@ export class AuthController {
 			try {
 				await this.userTokenPrismaService.deleteUserToken(refreshToken);
 			} catch (err) {
-				if (err instanceof PrismaClientUnknownRequestError) {
+				if (this.userTokenPrismaService.recordNotExistError(err)) {
 					logger.alert({
 						message: 'Attempted refresh token reuse at login.',
 						context: {
@@ -353,7 +352,7 @@ export class AuthController {
 		try {
 			await this.userTokenPrismaService.deleteUserToken(refreshToken);
 		} catch (err) {
-			if (!(err instanceof PrismaClientUnknownRequestError)) {
+			if (!(this.userTokenPrismaService.recordNotExistError(err))) {
 				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: err } });
 
 				return res.status(500).json({ error: 'Internal server error.' });

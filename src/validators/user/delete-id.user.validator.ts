@@ -1,6 +1,6 @@
-import { idFragmentValidator } from '@/validators/fragments/id.fragment.validator.js';
+import idFragmentValidator from '@/validators/fragments/id.fragment.validator.js';
 import { ValidationChain } from 'express-validator';
 
-export function deleteIdUserValidator(): ValidationChain[] {
+export default function deleteIdUserValidator(): ValidationChain[] {
 	return [...idFragmentValidator()];
 }

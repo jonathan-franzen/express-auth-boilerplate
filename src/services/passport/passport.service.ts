@@ -1,5 +1,5 @@
 import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
+import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import { Prisma } from '@prisma/client';
 import { JwtPayload } from 'jsonwebtoken';
 import passport, { PassportStatic } from 'passport';
@@ -7,7 +7,7 @@ import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export class PassportService {
+export default class PassportService {
 	constructor(private readonly userPrismaService: UserPrismaService) {
 		passport.use(
 			new Strategy(

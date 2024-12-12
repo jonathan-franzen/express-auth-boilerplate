@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-export class BcryptService {
+export default class BcryptService {
 	async hash(text: string): Promise<string> {
 		return await bcrypt.hash(text, 10);
 	}

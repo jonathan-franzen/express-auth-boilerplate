@@ -1,17 +1,15 @@
 import { ACCESS_TOKEN_LIFETIME, REFRESH_TOKEN_LIFETIME, RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import { JwtVerifyRejectJwtInterface } from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
-import { JwtVerifyResolveJwtInterface } from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
-import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
-import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
+import JwtVerifyRejectJwtInterface from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
+import JwtVerifyResolveJwtInterface from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
+import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
+import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
 import logger from '@/utils/logger.js';
-import { Prisma, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { Response } from 'express';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
-import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
-
-export class JwtService {
+export default class JwtService {
 	constructor(
 		private readonly userTokenPrismaService: UserTokenPrismaService,
 		private readonly resetPasswordTokenPrismaService: ResetPasswordTokenPrismaService,
@@ -45,7 +43,7 @@ export class JwtService {
 						try {
 							await this.userTokenPrismaService.deleteUserToken(token);
 						} catch (err) {
-							if (!(err instanceof PrismaClientUnknownRequestError)) {
+							if (!this.userTokenPrismaService.recordNotExistError) {
 								logger.alert({ message: 'Failed to delete invalid refresh token.', context: err });
 
 								return reject(res.status(500).json({ error: 'Internal server error.' }));
@@ -120,7 +118,7 @@ export class JwtService {
 					try {
 						await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token);
 					} catch (err) {
-						if (!(err instanceof PrismaClientUnknownRequestError)) {
+						if (!this.userTokenPrismaService.recordNotExistError) {
 							logger.alert({ message: 'Failed to delete invalid reset password token.', context: { error: err } });
 
 							return reject(res.status(500).json({ error: 'Internal server error.' }));

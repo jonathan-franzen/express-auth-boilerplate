@@ -1,3 +1,5 @@
-import { UserTokenPrismaService } from '@/services/prisma/user-token/user-token.prisma.service.js';
+import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
 
-export const userTokenPrismaService = new UserTokenPrismaService();
+const userTokenPrismaService = new UserTokenPrismaService();
+
+export default userTokenPrismaService;

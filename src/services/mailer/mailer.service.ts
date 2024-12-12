@@ -1,13 +1,13 @@
 import * as path from 'path';
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js';
-import { SendEmailOptionsEmailInterface } from '@/interfaces/email/send-email-options.email.interface.js';
+import SendEmailOptionsEmailInterface from '@/interfaces/email/send-email-options.email.interface.js';
 import { Prisma } from '@prisma/client';
 import { Transporter } from 'nodemailer';
 import Twig from 'twig';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export class MailerService {
+export default class MailerService {
 	constructor(
 		private readonly mailer: Transporter,
 		private readonly templatesPath: string,

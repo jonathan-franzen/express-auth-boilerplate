@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-export interface AsyncMiddlewareExpressInterface {
+export default interface AsyncMiddlewareExpressInterface {
 	(req: Request, res: Response, next: NextFunction): Promise<void | Response>;
 }

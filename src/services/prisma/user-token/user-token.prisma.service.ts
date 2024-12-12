@@ -6,8 +6,9 @@ import UserTokenUncheckedCreateInput = Prisma.UserTokenUncheckedCreateInput;
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserTokenWhereInput = Prisma.UserTokenWhereInput;
+import PrismaService from '@/services/prisma/prisma.service.js';
 
-export class UserTokenPrismaService {
+export default class UserTokenPrismaService extends PrismaService {
 	async getUserTokenByToken(token: string, include: UserTokenInclude): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
 		return prisma.userToken.findUnique({
 			where: {

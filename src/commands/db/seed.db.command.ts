@@ -1,12 +1,12 @@
-import { bcryptService } from '@/services/bcrypt/index.js';
-import { userPrismaService } from '@/services/prisma/user/index.js';
+import bcryptService from '@/services/bcrypt/index.js';
+import userPrismaService from '@/services/prisma/user/index.js';
 import logger from '@/utils/logger.js';
 import { Prisma } from '@prisma/client';
 import { Command } from 'commander';
 
 import UserCreateInput = Prisma.UserCreateInput;
 
-export const seedDbCommand: Command = new Command('db:seed').description('Init database').action(seed);
+const seedDbCommand: Command = new Command('db:seed').description('Init database').action(seed);
 
 function getUsers(): UserCreateInput[] {
 	return [
@@ -50,3 +50,5 @@ async function seed(): Promise<void> {
 		process.exit(1);
 	}
 }
+
+export default seedDbCommand;

@@ -6,8 +6,9 @@ import UserOmit = Prisma.UserOmit;
 import UserGetPayload = Prisma.UserGetPayload;
 import UserUpdateInput = Prisma.UserUpdateInput;
 import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
+import PrismaService from '@/services/prisma/prisma.service.js';
 
-export class UserPrismaService {
+export default class UserPrismaService extends PrismaService {
 	async getUserById(id: string): Promise<User | null> {
 		return prisma.user.findUnique({
 			where: {

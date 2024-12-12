@@ -1,7 +1,7 @@
-import { capitalizeSanitizer } from '@/validators/sanitizers/capitalize.sanitizer.js';
+import capitalizeSanitizer from '@/validators/sanitizers/capitalize.sanitizer.js';
 import { body, ValidationChain } from 'express-validator';
 
-export function lastNameFragmentValidator({ optional }: { optional: boolean }): ValidationChain[] {
+export default function lastNameFragmentValidator({ optional }: { optional: boolean }): ValidationChain[] {
 	return [
 		body('lastName')
 			.optional(optional)

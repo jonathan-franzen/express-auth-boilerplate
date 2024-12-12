@@ -1,6 +1,6 @@
-import { authRouter } from '@/routes/auth.router.js';
-import { userRouter } from '@/routes/user.router.js';
-import { passportService } from '@/services/passport/index.js';
+import authRouter from '@/routes/auth.router.js';
+import userRouter from '@/routes/user.router.js';
+import passportService from '@/services/passport/index.js';
 import express, { Router } from 'express';
 
 const router: Router = express.Router();

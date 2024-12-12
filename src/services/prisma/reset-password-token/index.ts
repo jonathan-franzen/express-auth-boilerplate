@@ -1,3 +1,5 @@
-import { ResetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
+import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 
-export const resetPasswordTokenPrismaService = new ResetPasswordTokenPrismaService();
+const resetPasswordTokenPrismaService = new ResetPasswordTokenPrismaService();
+
+export default resetPasswordTokenPrismaService;

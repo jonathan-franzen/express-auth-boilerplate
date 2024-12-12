@@ -1,7 +1,7 @@
 import { PORT } from '@/constants/environment.constants.js';
-import { loggerMiddleware } from '@/middlewares/logger.middleware.js';
+import loggerMiddleware from '@/middlewares/logger.middleware.js';
 import router from '@/routes/router.js';
-import { passportService } from '@/services/passport/index.js';
+import passportService from '@/services/passport/index.js';
 import logger from '@/utils/logger.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';

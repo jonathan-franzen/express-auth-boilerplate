@@ -1,9 +1,8 @@
-import { StatusError } from '@/errors/status.error.js';
-import { ErrorHandlerMiddlewareExpressInterface } from '@/interfaces/express/error-handler-middleware.express.interface.js';
+import StatusError from '@/errors/status.error.js';
 import logger from '@/utils/logger.js';
 import { Request, Response } from 'express';
 
-export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (err: Error, req: Request, res: Response): Response | void => {
+export default function errorHandlerMiddleware(err: Error, req: Request, res: Response): Response | void {
 	if (err instanceof StatusError) {
 		return res.status(err.status).json({ error: err.message });
 	} else {
@@ -17,4 +16,4 @@ export const errorHandlerMiddleware: ErrorHandlerMiddlewareExpressInterface = (e
 		});
 		return res.status(500).json({ error: 'Internal Server Error.' });
 	}
-};
+}

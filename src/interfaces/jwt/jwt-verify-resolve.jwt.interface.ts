@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
 
-export interface JwtVerifyResolveJwtInterface {
+export default interface JwtVerifyResolveJwtInterface {
 	(value: JwtPayload | PromiseLike<JwtPayload>): void;
 }

@@ -1,6 +1,6 @@
 import { body, ValidationChain } from 'express-validator';
 
-export function passwordFragmentValidator({ includeStrongCheck }: { includeStrongCheck: boolean }): ValidationChain[] {
+export default function passwordFragmentValidator({ includeStrongCheck }: { includeStrongCheck: boolean }): ValidationChain[] {
 	return [
 		body('password')
 			.exists()

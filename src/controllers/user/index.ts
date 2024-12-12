@@ -1,4 +1,6 @@
-import { UserController } from '@/controllers/user/user.controller.js';
-import { userPrismaService } from '@/services/prisma/user/index.js';
+import UserController from '@/controllers/user/user.controller.js';
+import userPrismaService from '@/services/prisma/user/index.js';
 
-export const userController = new UserController(userPrismaService);
+const userController = new UserController(userPrismaService);
+
+export default userController;

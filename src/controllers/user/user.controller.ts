@@ -1,5 +1,5 @@
-import { UserRequestExpressInterface } from '@/interfaces/express/user-request.express.interface.js';
-import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
+import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -7,7 +7,7 @@ import { Request, Response } from 'express';
 import UserGetPayload = Prisma.UserGetPayload;
 import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
-export class UserController {
+export default class UserController {
 	constructor(private readonly userPrismaService: UserPrismaService) {}
 
 	async getMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {

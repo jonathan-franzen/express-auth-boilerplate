@@ -1,10 +1,10 @@
 import { REFRESH_TOKEN_LIFETIME, RESET_PASSWORD_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import { resetPasswordTokenPrismaService } from '@/services/prisma/reset-password-token/index.js';
-import { userTokenPrismaService } from '@/services/prisma/user-token/index.js';
+import resetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/index.js';
+import userTokenPrismaService from '@/services/prisma/user-token/index.js';
 import logger from '@/utils/logger.js';
 import { Command } from 'commander';
 
-export const deleteExpiredTokensDbCommand: Command = new Command('db:delete-expired-tokens')
+const deleteExpiredTokensDbCommand: Command = new Command('db:delete-expired-tokens')
 	.description('Delete expired tokens in database')
 	.action(deleteExpiredTokens);
 
@@ -28,3 +28,5 @@ async function deleteExpiredTokens(): Promise<void> {
 		process.exit(1);
 	}
 }
+
+export default deleteExpiredTokensDbCommand;

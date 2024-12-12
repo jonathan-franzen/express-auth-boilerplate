@@ -1,4 +1,4 @@
-export interface SendEmailOptionsEmailInterface {
+export default interface SendEmailOptionsEmailInterface {
 	to: string;
 	subject: string;
 	templateName: string;

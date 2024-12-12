@@ -1,3 +1,5 @@
-import { BcryptService } from './bcrypt.service.js';
+import BcryptService from './bcrypt.service.js';
 
-export const bcryptService = new BcryptService();
+const bcryptService = new BcryptService();
+
+export default bcryptService;

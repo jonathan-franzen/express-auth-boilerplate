@@ -1,3 +1,5 @@
-import { UserPrismaService } from '@/services/prisma/user/user.prisma.service.js';
+import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 
-export const userPrismaService = new UserPrismaService();
+const userPrismaService = new UserPrismaService();
+
+export default userPrismaService;
