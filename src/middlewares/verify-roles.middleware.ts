@@ -16,6 +16,6 @@ export default function verifyRolesMiddleware(...allowedRoles: Role[]): UserSync
 			return res.status(403).json({ error: 'Unauthorized.' });
 		}
 
-		next();
+		return next();
 	};
 }

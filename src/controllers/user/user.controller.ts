@@ -5,25 +5,16 @@ import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
 
 import UserGetPayload = Prisma.UserGetPayload;
-import PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError;
 
 export default class UserController {
 	constructor(private readonly userPrismaService: UserPrismaService) {}
 
 	async getMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
-		if (!req.user) {
-			return res.status(401).json({ error: 'Unauthorized.' });
-		}
-
 		const { createdAt, updatedAt, ...me } = req.user;
 		return res.status(200).json({ message: 'Success.', me });
 	}
 
 	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
-		if (!req.user) {
-			return res.status(401).json({ message: 'Unauthorized.' });
-		}
-
 		const { ...userUpdateInput } = req.body;
 		if (req.body.email && req.body.email !== req.user.email) {
 			const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(req.body.email, {
@@ -76,7 +67,7 @@ export default class UserController {
 
 			return res.sendStatus(204);
 		} catch (err) {
-			if (err instanceof PrismaClientUnknownRequestError) {
+			if (this.userPrismaService.recordNotExistError(err)) {
 				return res.status(404).json({ error: 'Not found.' });
 			} else {
 				logger.alert({ message: 'Failed to delete user.', context: { userId: id } });
