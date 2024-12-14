@@ -1,13 +1,12 @@
-import StatusError from '@/errors/status.error.js';
 import logger from '@/utils/logger.js';
 import { NextFunction, Request, Response } from 'express';
+import { HttpError } from 'http-errors';
 
 export default function errorHandlerMiddleware(err: Error, req: Request, res: Response, _next: NextFunction) {
-	if (err instanceof StatusError) {
-		const json = err.status < 300 ? { message: err.message } : { error: err.message };
-		return res.status(err.status).json(json);
+	if (err instanceof HttpError) {
+		return res.status(err.status).json({ error: err.message });
 	} else {
-		logger.alert({
+			logger.alert({
 			message: 'Internal Server Error.',
 			context: {
 				requestUrl: req.url,
@@ -15,6 +14,7 @@ export default function errorHandlerMiddleware(err: Error, req: Request, res: Re
 				stack: err.stack,
 			},
 		});
+
 		return res.status(500).json({ error: 'Internal Server Error.' });
 	}
 }

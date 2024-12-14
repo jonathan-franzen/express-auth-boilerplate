@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import * as os from 'os';
 import { APP_ENV } from '@/constants/environment.constants.js';
-import StatusError from '@/errors/status.error.js';
 import { Format, TransformableInfo } from 'logform';
 import winston, { createLogger, format, Logger, transports } from 'winston';
 
@@ -28,7 +27,7 @@ const logFormat: Format = printf(({ level, message, context, extra }: Transforma
 
 	if (typeof context !== 'object') {
 		console.error('Log message context wrong format.');
-		throw new StatusError('Internal Server Error.', 500);
+		throw new Error('Internal Server Error.');
 	}
 
 	context = {

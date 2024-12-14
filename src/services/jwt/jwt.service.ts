@@ -1,6 +1,5 @@
 import { ACCESS_TOKEN_LIFETIME, REFRESH_TOKEN_LIFETIME, RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import StatusError from '@/errors/status.error.js';
 import JwtVerifyRejectJwtInterface from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
 import JwtVerifyResolveJwtInterface from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
 import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
@@ -9,6 +8,7 @@ import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { Prisma, Role } from '@prisma/client';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
+import createError from 'http-errors';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
@@ -50,8 +50,7 @@ export default class JwtService {
 							if (!this.userTokenPrismaService.recordNotExistError) {
 								logger.alert({ message: 'Failed to delete invalid refresh token.', context: err });
 
-								return reject(new StatusError('Internal server error.', 500));
-							}
+								return reject(createError(500, 'Internal server error.'));							}
 						}
 					}
 
@@ -63,7 +62,7 @@ export default class JwtService {
 						},
 					});
 
-					return reject(new StatusError('Token invalid.', 401));
+					return reject(createError(401, 'Token invalid.'));
 				}
 
 				return resolve(decoded);
@@ -99,7 +98,7 @@ export default class JwtService {
 						const decodedNew: JwtPayload | string | null = jwt.decode(token);
 
 						if (typeof decodedNew !== 'object' || !decodedNew || !decodedNew.verifyEmail.email) {
-							return reject(new StatusError('Token expired.', 401));
+							return reject(createError(401, 'Token expired.'));
 						}
 
 						const email: string = decodedNew.verifyEmail.email;
@@ -109,12 +108,12 @@ export default class JwtService {
 						});
 
 						if (foundUser && foundUser.emailVerifiedAt) {
-							return reject(new StatusError('Email already verified.', 200));
+							return resolve({ alreadyVerified: true });
 						}
 
-						return reject(new StatusError('Token expired.', 401));
+						return reject(createError(401, 'Token expired.'));
 					} else {
-						return reject(new StatusError('Token invalid.', 401));
+						return reject(createError(401, 'Token invalid.'));
 					}
 				}
 				return resolve(decoded);
@@ -144,7 +143,7 @@ export default class JwtService {
 						if (!this.userTokenPrismaService.recordNotExistError) {
 							logger.alert({ message: 'Failed to delete invalid reset password token.', context: { error: err } });
 
-							return reject(new StatusError('Internal server error.', 500));
+							return reject(createError(500, 'Internal server error.'));
 						}
 					}
 
@@ -154,14 +153,14 @@ export default class JwtService {
 							context: { token },
 						});
 
-						return reject(new StatusError('Token expired.', 401));
+						return reject(createError(401, 'Token expired.'));
 					} else {
 						logger.warning({
 							message: 'Reset password token not valid, or error occurred.',
 							context: { token },
 						});
 
-						return reject(new StatusError('Token invalid.', 401));
+						return reject(createError(401, 'Token invalid.'));
 					}
 				}
 

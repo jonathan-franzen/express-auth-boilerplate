@@ -8,20 +8,35 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Express } from 'express';
 import serverless from 'serverless-http';
+import rateLimit from 'express-rate-limit';
+import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
 
 const app: Express = express();
 
+app.disable('x-powered-by');
+
+app.use(rateLimit(expressRateLimitConfig));
+
 app.use(cookieParser());
+
 app.use(
 	cors({
 		origin: [FRONTEND_URL],
 		credentials: true,
 	}),
 );
+
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+
+app.use(express.json({
+	limit: '1MB'
+}));
+
+app.use(rateLimit(expressRateLimitConfig));
+
 // @ts-ignore
 app.use(passportService.getPassportInstance().initialize());
+
 app.use(loggerMiddleware());
 
 app.use(router);

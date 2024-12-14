@@ -6,6 +6,7 @@ export default function loggerMiddleware(): AsyncMiddlewareExpressInterface {
 	return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
 		const context = {
 			requestPath: req.originalUrl,
+			requestSize: req.headers['content-length'] || '',
 		};
 
 		await loggerAsyncStorage.run({ context }, async (): Promise<void> => {

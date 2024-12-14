@@ -67,6 +67,11 @@ export default class AuthController {
 		const { verifyEmailToken } = req.params;
 
 		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
+
+		if (decodedVerifyEmailToken.alreadyVerified) {
+			return res.status(200).json({message: 'Email already verified.'})
+		}
+
 		const email: string = decodedVerifyEmailToken.verifyEmail.email;
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
