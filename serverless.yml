@@ -32,7 +32,6 @@ provider:
     APP_ENV: dev
     FRONTEND_URL: http://localhost:3000
     MAILER_FROM: '"Example Team" <info@example.com>'
-    PATH: /Users/jonathanfranzen/.nvm/versions/node/v20.18.0/bin:/usr/local/bin:/bin:/usr/bin:/usr/sbin
 
 functions:
   website:
