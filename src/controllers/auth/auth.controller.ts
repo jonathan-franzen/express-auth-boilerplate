@@ -133,6 +133,7 @@ export default class AuthController {
 	async login(req: Request, res: Response): Promise<Response> {
 		const { email, password } = req.body;
 		const { refreshToken } = req.cookies;
+
 		const user: User | null = await this.userPrismaService.getUserByEmail(email);
 
 		if (!user) {
