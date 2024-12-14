@@ -5,6 +5,10 @@ import express, { Router } from 'express';
 
 const router: Router = express.Router();
 
+router.get('/', (_req, res) => {
+	res.json({ message: 'Welcome to express-auth-boilerplate!' });
+});
+
 router.use(authRouter);
 
 router.use(passportService.getPassportInstance().authenticate('jwt', { session: false }));

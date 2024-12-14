@@ -1,4 +1,5 @@
 import { prisma } from '@/config/prisma.config.js';
+import PrismaService from '@/services/prisma/prisma.service.js';
 import { Prisma, User } from '@prisma/client';
 
 import UserCreateInput = Prisma.UserCreateInput;
@@ -6,7 +7,6 @@ import UserOmit = Prisma.UserOmit;
 import UserGetPayload = Prisma.UserGetPayload;
 import UserUpdateInput = Prisma.UserUpdateInput;
 import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
-import PrismaService from '@/services/prisma/prisma.service.js';
 
 export default class UserPrismaService extends PrismaService {
 	async getUserById(id: string): Promise<User | null> {

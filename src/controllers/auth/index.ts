@@ -6,13 +6,6 @@ import resetPasswordTokenPrismaService from '@/services/prisma/reset-password-to
 import userTokenPrismaService from '@/services/prisma/user-token/index.js';
 import userPrismaService from '@/services/prisma/user/index.js';
 
-const authController = new AuthController(
-	jwtService,
-	bcryptService,
-	mailerService,
-	userPrismaService,
-	userTokenPrismaService,
-	resetPasswordTokenPrismaService,
-);
+const authController = new AuthController(jwtService, bcryptService, mailerService, userPrismaService, userTokenPrismaService, resetPasswordTokenPrismaService);
 
 export default authController;

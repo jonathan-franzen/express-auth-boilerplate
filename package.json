@@ -1,5 +1,6 @@
 {
 	"type": "module",
+	"license": "UNLICENSED",
 	"dependencies": {
 		"@prisma/client": "6.0.1",
 		"bcrypt": "^5.1.1",
@@ -13,13 +14,16 @@
 		"nodemailer": "^6.9.16",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
+		"serverless-http": "^3.2.0",
+		"tsx": "^4.19.2",
 		"twig": "^1.17.1",
 		"winston": "^3.17.0"
 	},
 	"scripts": {
 		"dev": "tsc --noEmit && nodemon --watch src --exec 'tsx' src/server.ts",
+		"serverless-dev": "export PATH=/Users/jonathanfranzen/.nvm/versions/node/v20.18.0/bin:$PATH && yarn serverless offline --httpPort 8000 --lambdaPort 8002",
 		"start": "tsx src/server.ts",
-		"console": "tsx src/console.ts",
+		"command": "tsx src/commands/index.ts",
 		"prettier": "prettier --write --ignore-unknown .",
 		"prettier:check": "prettier --check --ignore-unknown ."
 	},
@@ -40,7 +44,8 @@
 		"nodemon": "^3.1.0",
 		"prettier": "^3.2.5",
 		"prisma": "^6.0.1",
-		"tsx": "^4.19.2",
+		"serverless": "^4.4.16",
+		"serverless-offline": "^14.4.0",
 		"typescript": "^5.4.5"
 	}
 }
