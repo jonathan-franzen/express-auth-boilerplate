@@ -13,6 +13,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserGetPayload = Prisma.UserGetPayload;
+import sleep from '@/utils/sleep.js';
 
 export default class AuthController {
 	constructor(
@@ -143,6 +144,7 @@ export default class AuthController {
 				},
 			});
 
+			await sleep(70);
 			return res.status(401).json({ error: 'Invalid credentials.' });
 		}
 
