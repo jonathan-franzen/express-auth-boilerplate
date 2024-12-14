@@ -8,7 +8,7 @@ export default function errorHandlerMiddleware(err: Error, req: Request, res: Re
 		return res.status(err.status).json(json);
 	} else {
 		logger.alert({
-			message: 'Internal server error.',
+			message: 'Internal Server Error.',
 			context: {
 				requestUrl: req.url,
 				error: err.message,
