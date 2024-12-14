@@ -1,0 +1,52 @@
+service: express-auth-boilerplate
+frameworkVersion: '>=4.0.0'
+
+plugins:
+  - serverless-offline
+
+custom:
+  stage: ${opt:stage, "offline"}
+  cronEnabled:
+    offline: true
+    prod: true
+
+package:
+  individually: true
+  exclude:
+    - coverage/**
+    - test/**
+    - secrets.yml
+  include:
+    - src/**/*
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-north-1
+  stage: ${opt:stage, 'staging'}
+  timeout: 20
+  environment:
+    DATABASE_URL: postgresql://postgres@localhost:5432/express_auth_boilerplate?schema=public
+    ACCESS_TOKEN_SECRET: XXXXX
+    REFRESH_TOKEN_SECRET: XXXXX
+    APP_ENV: dev
+    FRONTEND_URL: http://localhost:3000
+    MAILER_FROM: '"Example Team" <info@example.com>'
+
+functions:
+  website:
+    handler: src/server.handler
+    memorySize: 512
+    timeout: 5
+    events:
+      - httpApi: '*'
+
+  console:
+    handler: src/console.handler
+    timeout: 900 # in seconds
+    reservedConcurrency: 5 # max messages processed in parallel
+    events:
+      - schedule:
+          enabled: ${self:custom.cronEnabled.${self:custom.stage}}
+          rate: rate(1 hour)
+          input: 'yarn command db:delete-expired-tokens'

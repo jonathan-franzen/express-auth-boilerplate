@@ -1,4 +1,5 @@
 import { prisma } from '@/config/prisma.config.js';
+import PrismaService from '@/services/prisma/prisma.service.js';
 import { Prisma, UserToken } from '@prisma/client';
 
 import BatchPayload = Prisma.BatchPayload;
@@ -6,7 +7,6 @@ import UserTokenUncheckedCreateInput = Prisma.UserTokenUncheckedCreateInput;
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserTokenWhereInput = Prisma.UserTokenWhereInput;
-import PrismaService from '@/services/prisma/prisma.service.js';
 
 export default class UserTokenPrismaService extends PrismaService {
 	async getUserTokenByToken(token: string, include: UserTokenInclude): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
@@ -24,8 +24,8 @@ export default class UserTokenPrismaService extends PrismaService {
 		});
 	}
 
-	async deleteUserToken(token: string): Promise<BatchPayload> {
-		return prisma.userToken.deleteMany({
+	async deleteUserToken(token: string): Promise<UserToken> {
+		return prisma.userToken.delete({
 			where: {
 				token,
 			},

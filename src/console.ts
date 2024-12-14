@@ -1,10 +1,28 @@
-import dbCommands from '@/commands/db/index.js';
-import { Command } from 'commander';
+import { exec } from 'child_process';
 
-export const console = new Command();
+export const handler = async (command: string): Promise<void> => {
+	try {
+		const result = await new Promise<string>((resolve, reject) => {
+			exec(command, (error, stdout, stderr) => {
+				if (error) {
+					reject(stderr || error.message);
+				} else {
+					resolve(stdout);
+				}
+			});
+		});
 
-console.name('Node Console').description('CLI Console for Node.').version('1.0.0');
-
-dbCommands.forEach((cmd: Command): Command => console.addCommand(cmd));
-
-console.parse(process.argv);
+		result.split('\n').forEach((line) => {
+			if (line.trim()) {
+				console.log(line);
+			}
+		});
+	} catch (error) {
+		const errorMessage = typeof error === 'string' ? error : (error as Error).message;
+		errorMessage.split('\n').forEach((line) => {
+			if (line.trim()) {
+				console.error(line);
+			}
+		});
+	}
+};

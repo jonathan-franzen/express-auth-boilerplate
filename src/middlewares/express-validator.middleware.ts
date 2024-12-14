@@ -28,6 +28,6 @@ export default function expressValidatorMiddleware(validators: ValidationChain[]
 				queryParams: JSON.stringify(req.query),
 			},
 		});
-		return res.status(firstError.msg.status).json({ message: firstError.msg.message });
+		return res.status(firstError.msg.status).json({ error: firstError.msg.message });
 	};
 }
