@@ -2270,6 +2270,11 @@ execa@^8.0.1:
     signal-exit "^4.1.0"
     strip-final-newline "^3.0.0"
 
+express-async-handler@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/express-async-handler/-/express-async-handler-1.2.0.tgz#ffc9896061d90f8d2e71a2d2b8668db5b0934391"
+  integrity sha512-rCSVtPXRmQSW8rmik/AIb2P0op6l7r1fMW538yyvTMltCO4xQEWMmobfrIxN2V1/mVrgxB8Az3reYF6yUZw37w==
+
 express-rate-limit@^7.4.1:
   version "7.4.1"
   resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.4.1.tgz#90954ecbcde9e7ae7b5000325395f86991191d94"

@@ -1,6 +1,6 @@
 import authController from '@/controllers/auth/index.js';
 import expressValidatorMiddleware from '@/middlewares/express-validator.middleware.js';
-import asyncHandler from '@/utils/async-handler.js';
+import asyncHandler from 'express-async-handler';
 import deleteLogoutAuthValidator from '@/validators/auth/delete-logout.auth.validator.js';
 import getResetPasswordTokenAuthValidator from '@/validators/auth/get-reset-password-token.auth.validator.js';
 import postLoginAuthValidator from '@/validators/auth/post-login.auth.validator.js';

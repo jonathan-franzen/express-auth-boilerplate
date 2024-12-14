@@ -2,7 +2,7 @@ import userController from '@/controllers/user/index.js';
 import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
 import expressValidatorMiddleware from '@/middlewares/express-validator.middleware.js';
 import verifyRolesMiddleware from '@/middlewares/verify-roles.middleware.js';
-import asyncHandler from '@/utils/async-handler.js';
+import asyncHandler from 'express-async-handler';
 import deleteIdUserValidator from '@/validators/user/delete-id.user.validator.js';
 import getIdUserValidator from '@/validators/user/get-id.user.validator.js';
 import patchMeUserValidator from '@/validators/user/patch-me.user.validator.js';
