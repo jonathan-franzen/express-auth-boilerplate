@@ -15,6 +15,6 @@ export default function errorHandlerMiddleware(err: Error, req: Request, res: Re
 				stack: err.stack,
 			},
 		});
-		return res.status(500).json({ error: err.message || 'Internal Server Error.' });
+		return res.status(500).json({ error: 'Internal Server Error.' });
 	}
 }
