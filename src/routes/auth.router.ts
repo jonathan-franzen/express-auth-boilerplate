@@ -1,6 +1,5 @@
 import authController from '@/controllers/auth/index.js';
 import expressValidatorMiddleware from '@/middlewares/express-validator.middleware.js';
-import asyncHandler from 'express-async-handler';
 import deleteLogoutAuthValidator from '@/validators/auth/delete-logout.auth.validator.js';
 import getResetPasswordTokenAuthValidator from '@/validators/auth/get-reset-password-token.auth.validator.js';
 import postLoginAuthValidator from '@/validators/auth/post-login.auth.validator.js';
@@ -11,6 +10,7 @@ import postResetPasswordTokenAuthValidator from '@/validators/auth/post-reset-pa
 import postResetPasswordAuthValidator from '@/validators/auth/post-reset-password.auth.validator.js';
 import postVerifyEmailTokenAuthValidator from '@/validators/auth/post-verify-email-token.auth.validator.js';
 import express, { Request, Response, Router } from 'express';
+import asyncHandler from 'express-async-handler';
 
 const authRouter: Router = express.Router();
 

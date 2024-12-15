@@ -1,3 +1,4 @@
+import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
 import { FRONTEND_URL, PORT } from '@/constants/environment.constants.js';
 import errorHandlerMiddleware from '@/middlewares/error-handler.middleware.js';
 import loggerMiddleware from '@/middlewares/logger.middleware.js';
@@ -7,9 +8,8 @@ import logger from '@/utils/logger.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Express } from 'express';
-import serverless from 'serverless-http';
 import rateLimit from 'express-rate-limit';
-import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
+import serverless from 'serverless-http';
 
 const app: Express = express();
 
@@ -28,9 +28,11 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-app.use(express.json({
-	limit: '1MB'
-}));
+app.use(
+	express.json({
+		limit: '1MB',
+	}),
+);
 
 app.use(rateLimit(expressRateLimitConfig));
 

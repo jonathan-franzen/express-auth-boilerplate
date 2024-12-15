@@ -4,6 +4,6 @@ const expressRateLimitConfig = {
 	standardHeaders: true,
 	legacyHeaders: false,
 	message: { error: 'Too many requests, please try again later.' },
-}
+};
 
 export default expressRateLimitConfig;

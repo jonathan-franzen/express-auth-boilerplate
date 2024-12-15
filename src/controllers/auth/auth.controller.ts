@@ -1,22 +1,26 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import BcryptService from '@/services/bcrypt/bcrypt.service.js';
+import HttpErrorService from '@/services/http-error/http-error.service.js';
 import JwtService from '@/services/jwt/jwt.service.js';
 import MailerService from '@/services/mailer/mailer.service.js';
 import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
+import sleep from '@/utils/sleep.js';
+import { until } from '@open-draft/until';
 import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
 import { Request, Response } from 'express';
+import { HttpError } from 'http-errors';
 import { JwtPayload } from 'jsonwebtoken';
 
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserGetPayload = Prisma.UserGetPayload;
-import sleep from '@/utils/sleep.js';
 
 export default class AuthController {
 	constructor(
+		private readonly httpErrorService: HttpErrorService,
 		private readonly jwtService: JwtService,
 		private readonly bcryptService: BcryptService,
 		private readonly mailerService: MailerService,
@@ -25,7 +29,7 @@ export default class AuthController {
 		private readonly resetPasswordTokenPrismaService: ResetPasswordTokenPrismaService,
 	) {}
 
-	async register(req: Request, res: Response): Promise<Response> {
+	async register(req: Request, res: Response): Promise<Response | HttpError> {
 		const { email, password, firstName, lastName } = req.body;
 
 		const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -41,7 +45,7 @@ export default class AuthController {
 				},
 			});
 
-			return res.status(409).json({ error: 'Email already in use.' });
+			return this.httpErrorService.emailAlreadyInUseError();
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -63,13 +67,13 @@ export default class AuthController {
 		});
 	}
 
-	async verifyEmail(req: Request, res: Response): Promise<Response> {
+	async verifyEmail(req: Request, res: Response): Promise<Response | HttpError> {
 		const { verifyEmailToken } = req.params;
 
 		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
 
 		if (decodedVerifyEmailToken.alreadyVerified) {
-			return res.status(200).json({message: 'Email already verified.'})
+			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
 		const email: string = decodedVerifyEmailToken.verifyEmail.email;
@@ -88,7 +92,7 @@ export default class AuthController {
 				},
 			});
 
-			return res.status(401).json({ error: 'Token invalid.' });
+			return this.httpErrorService.tokenInvalidError();
 		}
 
 		if (foundUser.emailVerifiedAt) {
@@ -135,7 +139,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async login(req: Request, res: Response): Promise<Response> {
+	async login(req: Request, res: Response): Promise<Response | HttpError> {
 		const { email, password } = req.body;
 		const { refreshToken } = req.cookies;
 
@@ -150,7 +154,7 @@ export default class AuthController {
 			});
 
 			await sleep(70);
-			return res.status(401).json({ error: 'Invalid credentials.' });
+			return this.httpErrorService.invalidCredentialsError();
 		}
 
 		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
@@ -163,14 +167,14 @@ export default class AuthController {
 				},
 			});
 
-			return res.status(401).json({ error: 'Invalid credentials.' });
+			return this.httpErrorService.invalidCredentialsError();
 		}
 
 		if (refreshToken) {
-			try {
-				await this.userTokenPrismaService.deleteUserToken(refreshToken);
-			} catch (err) {
-				if (this.userTokenPrismaService.recordNotExistError(err)) {
+			const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+
+			if (deleteRefreshToken.error) {
+				if (this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
 					logger.alert({
 						message: 'Attempted refresh token reuse at login.',
 						context: {
@@ -180,9 +184,9 @@ export default class AuthController {
 
 					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
 				} else {
-					logger.error({ message: 'Failed to delete refresh token.', context: { error: err } });
+					logger.error({ message: 'Failed to delete refresh token.', context: { error: deleteRefreshToken.error } });
 
-					return res.status(500).json({ error: 'Internal server error.' });
+					return this.httpErrorService.internalServerError();
 				}
 			}
 		}
@@ -205,7 +209,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Login successful.', accessToken });
 	}
 
-	async refresh(req: Request, res: Response): Promise<Response> {
+	async refresh(req: Request, res: Response): Promise<Response | HttpError> {
 		const { refreshToken } = req.cookies;
 
 		const userToken: UserTokenGetPayload<{ include: UserTokenInclude }> | null = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
@@ -233,18 +237,19 @@ export default class AuthController {
 
 			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-			return res.status(401).json({ error: 'Token invalid.' });
+			return this.httpErrorService.tokenInvalidError();
 		}
 
 		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
 
-		try {
-			await this.userTokenPrismaService.deleteUserToken(refreshToken);
-		} catch (err) {
-			if (!this.userTokenPrismaService.recordNotExistError(err)) {
+		const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+
+		if (deleteRefreshToken.error) {
+			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
+				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: deleteRefreshToken.error } });
 				res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-				return res.status(500).json({ error: 'Internal server error.' });
+				return this.httpErrorService.internalServerError();
 			}
 		}
 
@@ -289,7 +294,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
+	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response | HttpError> {
 		const { resetPasswordToken } = req.params;
 
 		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
@@ -297,7 +302,7 @@ export default class AuthController {
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			return res.status(410).json({ error: 'Token expired.' });
+			return this.httpErrorService.tokenExpiredError();
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -313,13 +318,13 @@ export default class AuthController {
 				},
 			});
 
-			return res.status(401).json({ error: 'Token invalid.' });
+			return this.httpErrorService.tokenInvalidError();
 		}
 
 		return res.status(200).json({ message: 'Token is valid.' });
 	}
 
-	async resetPassword(req: Request, res: Response): Promise<Response> {
+	async resetPassword(req: Request, res: Response): Promise<Response | HttpError> {
 		const { resetPasswordToken } = req.params;
 		const { password } = req.body;
 
@@ -328,7 +333,7 @@ export default class AuthController {
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			return res.status(410).json({ error: 'Token expired.' });
+			return this.httpErrorService.tokenExpiredError();
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -344,7 +349,7 @@ export default class AuthController {
 				},
 			});
 
-			return res.status(401).json({ error: 'Token invalid.' });
+			return this.httpErrorService.tokenInvalidError();
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -364,13 +369,14 @@ export default class AuthController {
 	async logout(req: Request, res: Response): Promise<Response> {
 		const { refreshToken } = req.cookies;
 
-		try {
-			await this.userTokenPrismaService.deleteUserToken(refreshToken);
-		} catch (err) {
-			if (!this.userTokenPrismaService.recordNotExistError(err)) {
-				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: err } });
+		const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
-				return res.status(500).json({ error: 'Internal server error.' });
+		if (deleteRefreshToken.error) {
+			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
+				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: deleteRefreshToken.error } });
+				res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
+
+				return res.sendStatus(204);
 			}
 		}
 

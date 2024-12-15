@@ -1,11 +1,9 @@
 import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
-import { Prisma } from '@prisma/client';
+import { until } from '@open-draft/until';
 import { JwtPayload } from 'jsonwebtoken';
 import passport, { PassportStatic } from 'passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
-
-import UserGetPayload = Prisma.UserGetPayload;
 
 export default class PassportService {
 	constructor(private readonly userPrismaService: UserPrismaService) {
@@ -27,17 +25,15 @@ export default class PassportService {
 			return done(null, false);
 		}
 
-		try {
-			const user: UserGetPayload<{ omit: { password: true } }> | null = await this.userPrismaService.getUserByEmail(email, { password: true });
+		const user = await until(() => this.userPrismaService.getUserByEmail(email, { password: true }));
 
-			if (!user) {
-				return done(null, false);
-			}
-
-			return done(null, user);
-		} catch (error) {
-			return done(error, false);
+		if (user.error) {
+			return done(user.error, false);
+		} else if (!user.data) {
+			return done(null, false);
 		}
+
+		return done(null, user.data);
 	}
 
 	getPassportInstance(): PassportStatic {

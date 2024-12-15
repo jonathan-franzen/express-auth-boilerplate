@@ -1,21 +1,29 @@
 import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import HttpErrorService from '@/services/http-error/http-error.service.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
+import { until } from '@open-draft/until';
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
+import { HttpError } from 'http-errors';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
 export default class UserController {
-	constructor(private readonly userPrismaService: UserPrismaService) {}
+	constructor(
+		private readonly userPrismaService: UserPrismaService,
+		private readonly httpErrorService: HttpErrorService,
+	) {}
 
 	async getMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
 		const { createdAt, updatedAt, ...me } = req.user;
+
 		return res.status(200).json({ message: 'Success.', me });
 	}
 
-	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
+	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response | HttpError> {
 		const { ...userUpdateInput } = req.body;
+
 		if (req.body.email && req.body.email !== req.user.email) {
 			const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(req.body.email, {
 				password: true,
@@ -23,10 +31,11 @@ export default class UserController {
 			});
 
 			if (duplicate) {
-				return res.status(409).json({ error: 'Email already in use.' });
+				return this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
 		const me: User = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
+
 		return res.status(200).json({ message: 'Success.', me });
 	}
 
@@ -40,7 +49,7 @@ export default class UserController {
 		return res.status(200).json({ message: 'Success.', users });
 	}
 
-	async getUserById(req: Request, res: Response): Promise<Response> {
+	async getUserById(req: Request, res: Response): Promise<Response | HttpError> {
 		const { id } = req.params;
 
 		const user: User | null = await this.userPrismaService.getUserById(id);
@@ -53,27 +62,27 @@ export default class UserController {
 				},
 			});
 
-			return res.status(404).json({ error: 'Not found.' });
+			return this.httpErrorService.notFoundError();
 		}
 
 		return res.status(200).json({ message: 'Success.', user });
 	}
 
-	async deleteUser(req: Request, res: Response): Promise<Response> {
+	async deleteUser(req: Request, res: Response): Promise<Response | HttpError> {
 		const { id } = req.params;
 
-		try {
-			await this.userPrismaService.deleteUser(id);
+		const deleteUser = await until(() => this.userPrismaService.deleteUser(id));
 
-			return res.sendStatus(204);
-		} catch (err) {
-			if (this.userPrismaService.recordNotExistError(err)) {
-				return res.status(404).json({ error: 'Not found.' });
+		if (deleteUser.error) {
+			if (this.userPrismaService.recordNotExistError(deleteUser.error)) {
+				return this.httpErrorService.notFoundError();
 			} else {
 				logger.alert({ message: 'Failed to delete user.', context: { userId: id } });
 
-				return res.status(500).json({ error: 'Internal server error.' });
+				return this.httpErrorService.internalServerError();
 			}
 		}
+
+		return res.sendStatus(204);
 	}
 }
