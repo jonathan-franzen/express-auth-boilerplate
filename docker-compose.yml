@@ -6,6 +6,8 @@ services:
     environment:
       POSTGRES_DB: express_auth_boilerplate
       POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: postgres
+
 
   mailhog:
     image: mailhog/mailhog

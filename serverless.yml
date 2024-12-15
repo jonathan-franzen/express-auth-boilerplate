@@ -26,7 +26,7 @@ provider:
   stage: ${opt:stage, 'staging'}
   timeout: 20
   environment:
-    DATABASE_URL: postgresql://postgres@localhost:5432/express_auth_boilerplate?schema=public
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/express_auth_boilerplate?schema=public
     ACCESS_TOKEN_SECRET: XXXXX
     REFRESH_TOKEN_SECRET: XXXXX
     APP_ENV: dev
