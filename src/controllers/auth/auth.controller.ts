@@ -11,7 +11,6 @@ import sleep from '@/utils/sleep.js';
 import { until } from '@open-draft/until';
 import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
 import { Request, Response } from 'express';
-import { HttpError } from 'http-errors';
 import { JwtPayload } from 'jsonwebtoken';
 
 import UserTokenInclude = Prisma.UserTokenInclude;
@@ -29,7 +28,7 @@ export default class AuthController {
 		private readonly resetPasswordTokenPrismaService: ResetPasswordTokenPrismaService,
 	) {}
 
-	async register(req: Request, res: Response): Promise<Response | HttpError> {
+	async register(req: Request, res: Response): Promise<Response> {
 		const { email, password, firstName, lastName } = req.body;
 
 		const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -45,7 +44,7 @@ export default class AuthController {
 				},
 			});
 
-			return this.httpErrorService.emailAlreadyInUseError();
+			throw this.httpErrorService.emailAlreadyInUseError();
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);
@@ -67,7 +66,7 @@ export default class AuthController {
 		});
 	}
 
-	async verifyEmail(req: Request, res: Response): Promise<Response | HttpError> {
+	async verifyEmail(req: Request, res: Response): Promise<Response> {
 		const { verifyEmailToken } = req.params;
 
 		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
@@ -92,7 +91,7 @@ export default class AuthController {
 				},
 			});
 
-			return this.httpErrorService.tokenInvalidError();
+			throw this.httpErrorService.tokenInvalidError();
 		}
 
 		if (foundUser.emailVerifiedAt) {
@@ -139,7 +138,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async login(req: Request, res: Response): Promise<Response | HttpError> {
+	async login(req: Request, res: Response): Promise<Response> {
 		const { email, password } = req.body;
 		const { refreshToken } = req.cookies;
 
@@ -154,7 +153,7 @@ export default class AuthController {
 			});
 
 			await sleep(70);
-			return this.httpErrorService.invalidCredentialsError();
+			throw this.httpErrorService.invalidCredentialsError();
 		}
 
 		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
@@ -167,7 +166,7 @@ export default class AuthController {
 				},
 			});
 
-			return this.httpErrorService.invalidCredentialsError();
+			throw this.httpErrorService.invalidCredentialsError();
 		}
 
 		if (refreshToken) {
@@ -186,7 +185,7 @@ export default class AuthController {
 				} else {
 					logger.error({ message: 'Failed to delete refresh token.', context: { error: deleteRefreshToken.error } });
 
-					return this.httpErrorService.internalServerError();
+					throw this.httpErrorService.internalServerError();
 				}
 			}
 		}
@@ -209,7 +208,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Login successful.', accessToken });
 	}
 
-	async refresh(req: Request, res: Response): Promise<Response | HttpError> {
+	async refresh(req: Request, res: Response): Promise<Response> {
 		const { refreshToken } = req.cookies;
 
 		const userToken: UserTokenGetPayload<{ include: UserTokenInclude }> | null = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
@@ -237,7 +236,7 @@ export default class AuthController {
 
 			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-			return this.httpErrorService.tokenInvalidError();
+			throw this.httpErrorService.tokenInvalidError();
 		}
 
 		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
@@ -249,7 +248,7 @@ export default class AuthController {
 				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: deleteRefreshToken.error } });
 				res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
 
-				return this.httpErrorService.internalServerError();
+				throw this.httpErrorService.internalServerError();
 			}
 		}
 
@@ -294,7 +293,7 @@ export default class AuthController {
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response | HttpError> {
+	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
 
 		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
@@ -302,7 +301,7 @@ export default class AuthController {
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			return this.httpErrorService.tokenExpiredError();
+			throw this.httpErrorService.tokenExpiredError();
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -318,13 +317,13 @@ export default class AuthController {
 				},
 			});
 
-			return this.httpErrorService.tokenInvalidError();
+			throw this.httpErrorService.tokenInvalidError();
 		}
 
 		return res.status(200).json({ message: 'Token is valid.' });
 	}
 
-	async resetPassword(req: Request, res: Response): Promise<Response | HttpError> {
+	async resetPassword(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
 		const { password } = req.body;
 
@@ -333,7 +332,7 @@ export default class AuthController {
 		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
-			return this.httpErrorService.tokenExpiredError();
+			throw this.httpErrorService.tokenExpiredError();
 		}
 
 		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
@@ -349,7 +348,7 @@ export default class AuthController {
 				},
 			});
 
-			return this.httpErrorService.tokenInvalidError();
+			throw this.httpErrorService.tokenInvalidError();
 		}
 
 		const hashedPassword: string = await this.bcryptService.hash(password);

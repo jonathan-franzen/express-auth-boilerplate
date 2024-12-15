@@ -5,7 +5,6 @@ import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
-import { HttpError } from 'http-errors';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
@@ -21,7 +20,7 @@ export default class UserController {
 		return res.status(200).json({ message: 'Success.', me });
 	}
 
-	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response | HttpError> {
+	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
 		const { ...userUpdateInput } = req.body;
 
 		if (req.body.email && req.body.email !== req.user.email) {
@@ -31,7 +30,7 @@ export default class UserController {
 			});
 
 			if (duplicate) {
-				return this.httpErrorService.emailAlreadyInUseError();
+				throw this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
 		const me: User = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
@@ -49,7 +48,7 @@ export default class UserController {
 		return res.status(200).json({ message: 'Success.', users });
 	}
 
-	async getUserById(req: Request, res: Response): Promise<Response | HttpError> {
+	async getUserById(req: Request, res: Response): Promise<Response> {
 		const { id } = req.params;
 
 		const user: User | null = await this.userPrismaService.getUserById(id);
@@ -62,24 +61,24 @@ export default class UserController {
 				},
 			});
 
-			return this.httpErrorService.notFoundError();
+			throw this.httpErrorService.notFoundError();
 		}
 
 		return res.status(200).json({ message: 'Success.', user });
 	}
 
-	async deleteUser(req: Request, res: Response): Promise<Response | HttpError> {
+	async deleteUser(req: Request, res: Response): Promise<Response> {
 		const { id } = req.params;
 
 		const deleteUser = await until(() => this.userPrismaService.deleteUser(id));
 
 		if (deleteUser.error) {
 			if (this.userPrismaService.recordNotExistError(deleteUser.error)) {
-				return this.httpErrorService.notFoundError();
+				throw this.httpErrorService.notFoundError();
 			} else {
 				logger.alert({ message: 'Failed to delete user.', context: { userId: id } });
 
-				return this.httpErrorService.internalServerError();
+				throw this.httpErrorService.internalServerError();
 			}
 		}
 
