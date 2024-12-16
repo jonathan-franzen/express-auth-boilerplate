@@ -18,13 +18,17 @@
 		"nodemailer": "^6.9.16",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
+		"serverless-console": "^1.0.4",
 		"serverless-http": "^3.2.0",
 		"twig": "^1.17.1",
 		"winston": "^3.17.0"
 	},
+	"resolutions": {
+		"strip-ansi": "6.0.0"
+	},
 	"scripts": {
 		"dev": "tsc --noEmit && nodemon --watch src --exec 'tsx' src/server.ts",
-		"serverless-dev": "export PATH=/Users/jonathanfranzen/.nvm/versions/node/v20.18.0/bin:$PATH && yarn serverless offline --httpPort 8000 --lambdaPort 8002",
+		"serverless-dev": "yarn serverless offline --httpPort 8000 --lambdaPort 8002",
 		"start": "tsx src/server.ts",
 		"command": "tsx src/commands/index.ts",
 		"prettier": "prettier --write --ignore-unknown .",
