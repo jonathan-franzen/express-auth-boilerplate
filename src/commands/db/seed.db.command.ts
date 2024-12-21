@@ -43,7 +43,7 @@ async function createUser(userCreateInput: UserCreateInput): Promise<void> {
 async function seed(): Promise<void> {
 	const users: UserCreateInput[] = getUsers();
 
-	const seed = await until(() => Promise.all(users.map((user: UserCreateInput): Promise<void> => createUser(user))));
+	const seed = await until((): Promise<void[]> => Promise.all(users.map((user: UserCreateInput): Promise<void> => createUser(user))));
 
 	if (seed.error) {
 		logger.error('Error during database seeding:', seed.error);

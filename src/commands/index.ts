@@ -3,7 +3,7 @@ import { Command } from 'commander';
 
 export const commander = new Command();
 
-commander.name('Node Commander').description('Command Console for Node.').version('1.0.0');
+commander.name('Node Commander').description('Command Console for Node.');
 
 dbCommands.forEach((cmd: Command): Command => commander.addCommand(cmd));
 

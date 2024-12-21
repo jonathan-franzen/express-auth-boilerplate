@@ -18,7 +18,7 @@
 		"nodemailer": "^6.9.16",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
-		"serverless-console": "^1.0.4",
+		"serverless-console": "^1.0.7",
 		"serverless-http": "^3.2.0",
 		"twig": "^1.17.1",
 		"winston": "^3.17.0"

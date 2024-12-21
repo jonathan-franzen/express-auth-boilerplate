@@ -8,7 +8,6 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_PASSWORD: postgres
 
-
   mailhog:
     image: mailhog/mailhog
     container_name: 'mailhog'

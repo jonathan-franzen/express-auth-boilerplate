@@ -20,7 +20,7 @@ export default function expressValidatorMiddleware(validators: ValidationChain[]
 		const firstError: ValidationError = errors.array().at(0)!;
 
 		logger.warning({
-			message: `Request did not pass validation.`,
+			message: 'Request did not pass validation.',
 			context: {
 				error: firstError?.msg.message,
 				url: req.baseUrl + req.url,
