@@ -1,6 +1,6 @@
 import createError from 'http-errors';
 
-export default class HttpErrorService {
+class HttpErrorService {
 	invalidCredentialsError() {
 		return createError(401, 'Invalid credentials.');
 	}
@@ -25,3 +25,5 @@ export default class HttpErrorService {
 		return createError(500, 'Internal server error.');
 	}
 }
+
+export default HttpErrorService;

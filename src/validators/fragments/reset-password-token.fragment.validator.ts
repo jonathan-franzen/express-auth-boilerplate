@@ -1,6 +1,6 @@
 import { param, ValidationChain } from 'express-validator';
 
-export default function resetPasswordTokenFragmentValidator(): ValidationChain[] {
+function resetPasswordTokenFragmentValidator(): ValidationChain[] {
 	return [
 		param('resetPasswordToken')
 			.exists()
@@ -15,3 +15,5 @@ export default function resetPasswordTokenFragmentValidator(): ValidationChain[]
 			}),
 	];
 }
+
+export default resetPasswordTokenFragmentValidator;

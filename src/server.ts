@@ -2,7 +2,7 @@ import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
 import { FRONTEND_URL, PORT } from '@/constants/environment.constants.js';
 import errorHandlerMiddleware from '@/middlewares/error-handler.middleware.js';
 import loggerMiddleware from '@/middlewares/logger.middleware.js';
-import router from '@/routes/router.js';
+import router from '@/routes/index.js';
 import passportService from '@/services/passport/index.js';
 import logger from '@/utils/logger.js';
 import cookieParser from 'cookie-parser';
@@ -33,8 +33,6 @@ app.use(
 		limit: '1MB',
 	}),
 );
-
-app.use(rateLimit(expressRateLimitConfig));
 
 // @ts-ignore
 app.use(passportService.getPassportInstance().initialize());

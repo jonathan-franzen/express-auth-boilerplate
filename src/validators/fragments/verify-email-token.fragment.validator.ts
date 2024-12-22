@@ -1,6 +1,6 @@
 import { param, ValidationChain } from 'express-validator';
 
-export default function verifyEmailTokenFragmentValidator(): ValidationChain[] {
+function verifyEmailTokenFragmentValidator(): ValidationChain[] {
 	return [
 		param('verifyEmailToken')
 			.exists()
@@ -15,3 +15,5 @@ export default function verifyEmailTokenFragmentValidator(): ValidationChain[] {
 			}),
 	];
 }
+
+export default verifyEmailTokenFragmentValidator;

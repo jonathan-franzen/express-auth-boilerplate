@@ -13,7 +13,7 @@ import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export default class JwtService {
+class JwtService {
 	constructor(
 		private readonly userPrismaService: UserPrismaService,
 		private readonly userTokenPrismaService: UserTokenPrismaService,
@@ -167,3 +167,5 @@ export default class JwtService {
 		});
 	}
 }
+
+export default JwtService;

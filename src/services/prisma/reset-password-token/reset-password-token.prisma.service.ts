@@ -5,7 +5,7 @@ import { Prisma, ResetPasswordToken } from '@prisma/client';
 import BatchPayload = Prisma.BatchPayload;
 import ResetPasswordTokenWhereInput = Prisma.ResetPasswordTokenWhereInput;
 
-export default class ResetPasswordTokenPrismaService extends PrismaService {
+class ResetPasswordTokenPrismaService extends PrismaService {
 	async getResetPasswordToken(token: string): Promise<ResetPasswordToken | null> {
 		return prisma.resetPasswordToken.findUnique({
 			where: {
@@ -43,3 +43,5 @@ export default class ResetPasswordTokenPrismaService extends PrismaService {
 		});
 	}
 }
+
+export default ResetPasswordTokenPrismaService;

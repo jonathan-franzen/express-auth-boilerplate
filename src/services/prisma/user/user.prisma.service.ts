@@ -8,7 +8,7 @@ import UserGetPayload = Prisma.UserGetPayload;
 import UserUpdateInput = Prisma.UserUpdateInput;
 import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
 
-export default class UserPrismaService extends PrismaService {
+class UserPrismaService extends PrismaService {
 	async getUserById(id: string): Promise<User | null> {
 		return prisma.user.findUnique({
 			where: {
@@ -61,3 +61,5 @@ export default class UserPrismaService extends PrismaService {
 		});
 	}
 }
+
+export default UserPrismaService;

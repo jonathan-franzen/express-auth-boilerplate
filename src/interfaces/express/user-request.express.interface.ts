@@ -3,6 +3,8 @@ import { Request } from 'express';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export default interface UserRequestExpressInterface extends Request {
+interface UserRequestExpressInterface extends Request {
 	user: UserGetPayload<{ omit: { password: true } }>;
 }
+
+export default UserRequestExpressInterface;

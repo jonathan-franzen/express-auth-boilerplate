@@ -1,4 +1,5 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
+import EventsInterface from '@/interfaces/events/events.interface.js';
 import BcryptService from '@/services/bcrypt/bcrypt.service.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
 import JwtService from '@/services/jwt/jwt.service.js';
@@ -12,14 +13,16 @@ import { until } from '@open-draft/until';
 import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
+import { EventManager } from 'serverless-sqs-events';
 
 import UserTokenInclude = Prisma.UserTokenInclude;
 import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserGetPayload = Prisma.UserGetPayload;
 
-export default class AuthController {
+class AuthController {
 	constructor(
 		private readonly httpErrorService: HttpErrorService,
+		private readonly eventManager: EventManager<EventsInterface>,
 		private readonly jwtService: JwtService,
 		private readonly bcryptService: BcryptService,
 		private readonly mailerService: MailerService,
@@ -58,7 +61,10 @@ export default class AuthController {
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(createdUser.email);
 
-		await this.mailerService.sendVerifyEmail(createdUser, verifyToken);
+		await this.eventManager.send('sendVerifyEmail', {
+			user: createdUser,
+			verifyToken,
+		});
 
 		return res.status(201).json({
 			message: 'User successfully created.',
@@ -133,7 +139,7 @@ export default class AuthController {
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
 
-		await this.mailerService.sendVerifyEmail(user, verifyToken);
+		await this.mailerService.sendVerifyEmail({ user, verifyToken });
 
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
@@ -383,3 +389,5 @@ export default class AuthController {
 		return res.sendStatus(204);
 	}
 }
+
+export default AuthController;

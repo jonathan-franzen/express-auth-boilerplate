@@ -2,7 +2,7 @@ import AsyncMiddlewareExpressInterface from '@/interfaces/express/async-middlewa
 import { loggerAsyncStorage } from '@/utils/logger.js';
 import { NextFunction, Request, Response } from 'express';
 
-export default function loggerMiddleware(): AsyncMiddlewareExpressInterface {
+function loggerMiddleware(): AsyncMiddlewareExpressInterface {
 	return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
 		const context = {
 			requestPath: req.originalUrl,
@@ -14,3 +14,5 @@ export default function loggerMiddleware(): AsyncMiddlewareExpressInterface {
 		});
 	};
 }
+
+export default loggerMiddleware;

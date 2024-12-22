@@ -5,7 +5,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import passport, { PassportStatic } from 'passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 
-export default class PassportService {
+class PassportService {
 	constructor(private readonly userPrismaService: UserPrismaService) {
 		passport.use(
 			new Strategy(
@@ -40,3 +40,5 @@ export default class PassportService {
 		return passport;
 	}
 }
+
+export default PassportService;

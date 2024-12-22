@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export default class UserController {
+class UserController {
 	constructor(
 		private readonly userPrismaService: UserPrismaService,
 		private readonly httpErrorService: HttpErrorService,
@@ -85,3 +85,5 @@ export default class UserController {
 		return res.sendStatus(204);
 	}
 }
+
+export default UserController;

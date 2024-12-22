@@ -3,7 +3,7 @@ import UserSyncMiddlewareExpressInterface from '@/interfaces/express/user-sync-m
 import { Role } from '@prisma/client';
 import { NextFunction, Response } from 'express';
 
-export default function verifyRolesMiddleware(...allowedRoles: Role[]): UserSyncMiddlewareExpressInterface {
+function verifyRolesMiddleware(...allowedRoles: Role[]): UserSyncMiddlewareExpressInterface {
 	return (req: UserRequestExpressInterface, res: Response, next: NextFunction): Response | void => {
 		if (!req?.user?.roles) {
 			return res.status(403).json({ error: 'Unauthorized.' });
@@ -19,3 +19,5 @@ export default function verifyRolesMiddleware(...allowedRoles: Role[]): UserSync
 		return next();
 	};
 }
+
+export default verifyRolesMiddleware;

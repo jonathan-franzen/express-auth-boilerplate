@@ -1,4 +1,5 @@
 import AuthController from '@/controllers/auth/auth.controller.js';
+import eventManager from '@/events/index.js';
 import bcryptService from '@/services/bcrypt/index.js';
 import httpErrorService from '@/services/http-error/index.js';
 import jwtService from '@/services/jwt/index.js';
@@ -9,6 +10,7 @@ import userPrismaService from '@/services/prisma/user/index.js';
 
 const authController = new AuthController(
 	httpErrorService,
+	eventManager,
 	jwtService,
 	bcryptService,
 	mailerService,

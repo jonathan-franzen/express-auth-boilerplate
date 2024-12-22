@@ -1,3 +1,5 @@
-export default interface JwtVerifyRejectJwtInterface {
+interface JwtVerifyRejectJwtInterface {
 	(reason?: any): void;
 }
+
+export default JwtVerifyRejectJwtInterface;

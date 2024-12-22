@@ -2,6 +2,7 @@ service: express-auth-boilerplate
 frameworkVersion: '>=4.0.0'
 
 plugins:
+  - serverless-offline-sqs
   - serverless-offline
 
 custom:
@@ -9,6 +10,11 @@ custom:
   cronEnabled:
     offline: true
     prod: true
+  serverless-offline-sqs:
+    autoCreate: true
+    apiVersion: '2012-11-05'
+    endpoint: http://localhost:9324
+    skipCacheInvalidation: false
 
 package:
   individually: true
@@ -32,6 +38,17 @@ provider:
     APP_ENV: dev
     FRONTEND_URL: http://localhost:3000
     MAILER_FROM: '"Example Team" <info@example.com>'
+    PATH: '/Users/jonathanfranzen/.nvm/versions/node/v20.18.1/bin:/Users/jonathanfranzen/.yarn/bin:/Users/jonathanfranzen/.config/yarn/global/node_modules/.bin:/Users/jonathanfranzen/bin:/usr/local/bin:/usr/bin:/bin'
+    AWS_REGION: eu-north-1
+    WORKQUEUE_URL: http://localhost:9324/000000000000/workqueue
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:DeleteMessageBatch
+      Resource:
+        - Fn::GetAtt: [MessagesQueue, Arn]
 
 functions:
   website:
@@ -40,6 +57,15 @@ functions:
     timeout: 5
     events:
       - httpApi: '*'
+
+  worker:
+    handler: src/worker.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - workqueue
+              - Arn
 
   console:
     handler: src/console.handler
@@ -50,3 +76,11 @@ functions:
           enabled: ${self:custom.cronEnabled.${self:custom.stage}}
           rate: rate(1 hour)
           input: 'yarn command db:delete-expired-tokens'
+
+resources:
+  Resources:
+    workqueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: workqueue
+        VisibilityTimeout: 120

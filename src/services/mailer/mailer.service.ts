@@ -1,13 +1,14 @@
 import * as path from 'path';
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js';
 import SendEmailOptionsEmailInterface from '@/interfaces/email/send-email-options.email.interface.js';
+import SendVerifyEmailMailerInterface from '@/interfaces/mailer/send-verify-email.mailer.interface.js';
 import { Prisma } from '@prisma/client';
 import { Transporter } from 'nodemailer';
 import Twig from 'twig';
 
 import UserGetPayload = Prisma.UserGetPayload;
 
-export default class MailerService {
+class MailerService {
 	constructor(
 		private readonly mailer: Transporter,
 		private readonly templatesPath: string,
@@ -28,7 +29,6 @@ export default class MailerService {
 
 	private async sendMail(options: SendEmailOptionsEmailInterface): Promise<void> {
 		const { to, subject, templateName, context } = options;
-
 		const html: string = await this.renderTemplate(templateName, context);
 
 		const mailOptions = {
@@ -41,7 +41,7 @@ export default class MailerService {
 		await this.mailer.sendMail(mailOptions);
 	}
 
-	async sendVerifyEmail(user: UserGetPayload<{ omit: { password: true; roles: true } }>, verifyToken: string): Promise<void> {
+	async sendVerifyEmail({ user, verifyToken }: SendVerifyEmailMailerInterface): Promise<void> {
 		await this.sendMail({
 			to: user.email,
 			subject: 'Verify your email',
@@ -65,3 +65,5 @@ export default class MailerService {
 		});
 	}
 }
+
+export default MailerService;
