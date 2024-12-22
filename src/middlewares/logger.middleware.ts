@@ -1,8 +1,7 @@
-import AsyncMiddlewareExpressInterface from '@/interfaces/express/async-middleware.express.interface.js';
 import { loggerAsyncStorage } from '@/utils/logger.js';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 
-function loggerMiddleware(): AsyncMiddlewareExpressInterface {
+function loggerMiddleware(): RequestHandler {
 	return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
 		const context = {
 			requestPath: req.originalUrl,
@@ -10,7 +9,7 @@ function loggerMiddleware(): AsyncMiddlewareExpressInterface {
 		};
 
 		await loggerAsyncStorage.run({ context }, async (): Promise<void> => {
-			next();
+			return next();
 		});
 	};
 }

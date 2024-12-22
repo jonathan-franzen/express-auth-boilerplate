@@ -28,7 +28,6 @@ userRouter.patch(
 
 userRouter.get(
 	'/',
-	// @ts-ignore
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getAllUsers(req, res);
@@ -38,7 +37,6 @@ userRouter.get(
 userRouter.get(
 	'/:id',
 	expressValidatorMiddleware(getIdUserValidator()),
-	// @ts-ignore
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getUserById(req, res);
@@ -48,7 +46,6 @@ userRouter.get(
 userRouter.delete(
 	'/:id',
 	expressValidatorMiddleware(deleteIdUserValidator()),
-	// @ts-ignore
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.deleteUser(req, res);

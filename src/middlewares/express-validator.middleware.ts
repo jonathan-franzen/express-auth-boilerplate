@@ -1,10 +1,9 @@
-import AsyncMiddlewareExpressInterface from '@/interfaces/express/async-middleware.express.interface.js';
 import logger from '@/utils/logger.js';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { checkExact, Result, ValidationChain, ValidationError, validationResult } from 'express-validator';
 
-function expressValidatorMiddleware(validators: ValidationChain[]): AsyncMiddlewareExpressInterface {
-	return async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+function expressValidatorMiddleware(validators: ValidationChain[]): RequestHandler {
+	return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 		// Throw an error if there are too many fields in the request
 		await checkExact(validators, {
 			message: { message: 'Too many fields specified.', status: 400 },
@@ -28,7 +27,7 @@ function expressValidatorMiddleware(validators: ValidationChain[]): AsyncMiddlew
 				queryParams: JSON.stringify(req.query),
 			},
 		});
-		return res.status(firstError.msg.status).json({ error: firstError.msg.message });
+		res.status(firstError.msg.status).json({ error: firstError.msg.message });
 	};
 }
 

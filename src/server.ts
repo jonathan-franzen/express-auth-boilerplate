@@ -34,7 +34,6 @@ app.use(
 	}),
 );
 
-// @ts-ignore
 app.use(passportService.getPassportInstance().initialize());
 
 app.use(loggerMiddleware());
