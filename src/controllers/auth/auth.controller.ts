@@ -61,10 +61,9 @@ class AuthController {
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(createdUser.email);
 
-		await this.eventManager.send('sendVerifyEmail', {
-			user: createdUser,
-			verifyToken,
-		});
+		const emailOptions = await this.mailerService.getVerifyEmailOptions(createdUser, verifyToken);
+
+		await this.eventManager.send('sendEmail', emailOptions);
 
 		return res.status(201).json({
 			message: 'User successfully created.',
@@ -139,7 +138,9 @@ class AuthController {
 
 		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
 
-		await this.mailerService.sendVerifyEmail({ user, verifyToken });
+		const emailOptions = await this.mailerService.getVerifyEmailOptions(user, verifyToken);
+
+		await this.eventManager.send('sendEmail', emailOptions);
 
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
@@ -295,7 +296,10 @@ class AuthController {
 
 		await this.resetPasswordTokenPrismaService.createOrUpdateResetPasswordToken(resetPasswordToken, user.id);
 
-		await this.mailerService.sendResetPasswordEmail(user, resetPasswordToken);
+		const emailOptions = await this.mailerService.getResetPasswordEmailOptions(user, resetPasswordToken);
+
+		await this.eventManager.send('sendEmail', emailOptions);
+
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 

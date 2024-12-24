@@ -1,7 +1,6 @@
 import * as path from 'path';
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js';
-import SendEmailOptionsEmailInterface from '@/interfaces/email/send-email-options.email.interface.js';
-import SendVerifyEmailMailerInterface from '@/interfaces/mailer/send-verify-email.mailer.interface.js';
+import SendEmailOptionsMailerInterface from '@/interfaces/mailer/send-email-options.mailer.interface.js';
 import { Prisma } from '@prisma/client';
 import { Transporter } from 'nodemailer';
 import Twig from 'twig';
@@ -27,7 +26,7 @@ class MailerService {
 		});
 	}
 
-	private async sendMail(options: SendEmailOptionsEmailInterface): Promise<void> {
+	async sendEmail(options: SendEmailOptionsMailerInterface): Promise<void> {
 		const { to, subject, templateName, context } = options;
 		const html: string = await this.renderTemplate(templateName, context);
 
@@ -41,8 +40,8 @@ class MailerService {
 		await this.mailer.sendMail(mailOptions);
 	}
 
-	async sendVerifyEmail({ user, verifyToken }: SendVerifyEmailMailerInterface): Promise<void> {
-		await this.sendMail({
+	async getVerifyEmailOptions(user: UserGetPayload<{ omit: { password: true; roles: true } }>, verifyToken: string): Promise<SendEmailOptionsMailerInterface> {
+		return {
 			to: user.email,
 			subject: 'Verify your email',
 			templateName: 'verify-email.template.twig',
@@ -50,11 +49,14 @@ class MailerService {
 				name: user.firstName,
 				verifyUrl: `${FRONTEND_URL}/verify-email/${verifyToken}`,
 			},
-		});
+		};
 	}
 
-	async sendResetPasswordEmail(user: UserGetPayload<{ omit: { password: true; roles: true } }>, resetPasswordToken: string): Promise<void> {
-		await this.sendMail({
+	async getResetPasswordEmailOptions(
+		user: UserGetPayload<{ omit: { password: true; roles: true } }>,
+		resetPasswordToken: string,
+	): Promise<SendEmailOptionsMailerInterface> {
+		return {
 			to: user.email,
 			subject: 'Reset your password',
 			templateName: 'reset-password.template.twig',
@@ -62,7 +64,7 @@ class MailerService {
 				name: user.firstName,
 				resetPasswordUrl: `${FRONTEND_URL}/reset-password/${resetPasswordToken}`,
 			},
-		});
+		};
 	}
 }
 

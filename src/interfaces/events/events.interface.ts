@@ -1,7 +1,7 @@
-import SendVerifyEmailMailerInterface from '@/interfaces/mailer/send-verify-email.mailer.interface.js';
+import SendEmailOptionsMailerInterface from '@/interfaces/mailer/send-email-options.mailer.interface.js';
 
 interface EventsInterface {
-	sendVerifyEmail: SendVerifyEmailMailerInterface;
+	sendEmail: SendEmailOptionsMailerInterface;
 }
 
 export default EventsInterface;
