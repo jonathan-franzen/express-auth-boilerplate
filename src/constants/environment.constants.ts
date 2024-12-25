@@ -18,3 +18,6 @@ export const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET as string;
 export const MAILER_FROM = env.MAILER_FROM as string;
 export const FRONTEND_URL = env.FRONTEND_URL as string;
 export const WORKQUEUE_URL: string = env.WORKQUEUE_URL as string;
+
+// Provided
+export const AWS_LAMBDA_FUNCTION_NAME = env.AWS_LAMBDA_FUNCTION_NAME as string;

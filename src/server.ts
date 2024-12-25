@@ -1,5 +1,5 @@
 import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
-import { FRONTEND_URL, PORT } from '@/constants/environment.constants.js';
+import { AWS_LAMBDA_FUNCTION_NAME, FRONTEND_URL, PORT } from '@/constants/environment.constants.js';
 import errorHandlerMiddleware from '@/middlewares/error-handler.middleware.js';
 import loggerMiddleware from '@/middlewares/logger.middleware.js';
 import router from '@/routes/index.js';
@@ -42,8 +42,10 @@ app.use(router);
 
 app.use(errorHandlerMiddleware);
 
-app.listen(PORT, (): void => {
-	logger.info(`App listening on port ${PORT}`);
-});
+if (!AWS_LAMBDA_FUNCTION_NAME) {
+	app.listen(PORT, (): void => {
+		logger.info(`App listening on port ${PORT}`);
+	});
+}
 
 export const handler = serverless(app);

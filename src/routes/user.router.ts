@@ -4,6 +4,7 @@ import expressValidatorMiddleware from '@/middlewares/express-validator.middlewa
 import verifyRolesMiddleware from '@/middlewares/verify-roles.middleware.js';
 import deleteIdUserValidator from '@/validators/user/delete-id.user.validator.js';
 import getIdUserValidator from '@/validators/user/get-id.user.validator.js';
+import getUserValidator from '@/validators/user/get.user.validator.js';
 import patchMeUserValidator from '@/validators/user/patch-me.user.validator.js';
 import { Role } from '@prisma/client';
 import express, { Request, Response, Router } from 'express';
@@ -28,6 +29,7 @@ userRouter.patch(
 
 userRouter.get(
 	'/',
+	expressValidatorMiddleware(getUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getAllUsers(req, res);

@@ -26,9 +26,13 @@ class UserPrismaService extends PrismaService {
 		});
 	}
 
-	async getAllUsers(omit?: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
+	async getAllUsers(omit?: UserOmit, page: number = 1, limit: number = 10): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
+		const skip = (page - 1) * limit;
+
 		return prisma.user.findMany({
-			omit: omit,
+			skip,
+			take: limit,
+			omit,
 		});
 	}
 

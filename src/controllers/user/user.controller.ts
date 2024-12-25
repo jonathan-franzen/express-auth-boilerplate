@@ -38,14 +38,24 @@ class UserController {
 		return res.status(200).json({ message: 'Success.', me });
 	}
 
-	async getAllUsers(_req: Request, res: Response): Promise<Response> {
-		const users: UserGetPayload<{ omit: { password: true } }>[] | null = await this.userPrismaService.getAllUsers({ password: true });
+	async getAllUsers(req: Request, res: Response): Promise<Response> {
+		const page = parseInt(req.query.page as string) || 1;
+		const limit = parseInt(req.query.limit as string) || 10;
 
-		if (!users) {
+		const users: UserGetPayload<{ omit: { password: true } }>[] | null = await this.userPrismaService.getAllUsers({ password: true }, page, limit);
+
+		if (!users || users.length === 0) {
 			return res.sendStatus(204);
 		}
 
-		return res.status(200).json({ message: 'Success.', users });
+		return res.status(200).json({
+			message: 'Success.',
+			users,
+			pagination: {
+				page,
+				limit,
+			},
+		});
 	}
 
 	async getUserById(req: Request, res: Response): Promise<Response> {
