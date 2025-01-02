@@ -40,9 +40,15 @@ class UserController {
 
 	async getAllUsers(req: Request, res: Response): Promise<Response> {
 		const page = parseInt(req.query.page as string) || 1;
-		const limit = parseInt(req.query.limit as string) || 10;
+		const limit = parseInt(req.query.limit as string) || 20;
+		const filters = req.query.filters ? JSON.parse(req.query.filters as string) : {};
+		const sortBy = (req.query.sortBy as string) || 'createdAt';
+		const sortOrder = req.query.sortOrder === 'asc' || req.query.sortOrder === 'desc' ? req.query.sortOrder : 'asc';
 
-		const users: UserGetPayload<{ omit: { password: true } }>[] | null = await this.userPrismaService.getAllUsers({ password: true }, page, limit);
+		const [users, totalCount] = await Promise.all([
+			this.userPrismaService.getAllUsers({ password: true }, page, limit, filters, sortBy, sortOrder),
+			this.userPrismaService.getUsersCount(filters),
+		]);
 
 		if (!users || users.length === 0) {
 			return res.sendStatus(204);
@@ -54,11 +60,12 @@ class UserController {
 			pagination: {
 				page,
 				limit,
+				totalPages: Math.ceil(totalCount / limit),
 			},
 		});
 	}
 
-	async getUserById(req: Request, res: Response): Promise<Response> {
+	async getUser(req: Request, res: Response): Promise<Response> {
 		const { id } = req.params;
 
 		const user: User | null = await this.userPrismaService.getUserById(id);
@@ -73,6 +80,25 @@ class UserController {
 
 			throw this.httpErrorService.notFoundError();
 		}
+
+		return res.status(200).json({ message: 'Success.', user });
+	}
+
+	async patchUser(req: Request, res: Response): Promise<Response> {
+		const { id } = req.params;
+		const { ...userUpdateInput } = req.body;
+
+		if (req.body.email) {
+			const potentialDuplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(req.body.email, {
+				password: true,
+				roles: true,
+			});
+
+			if (potentialDuplicate?.id && potentialDuplicate?.id !== id) {
+				throw this.httpErrorService.emailAlreadyInUseError();
+			}
+		}
+		const user: User = await this.userPrismaService.updateUser({ id }, { ...userUpdateInput });
 
 		return res.status(200).json({ message: 'Success.', user });
 	}

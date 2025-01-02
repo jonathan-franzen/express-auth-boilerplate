@@ -19,13 +19,13 @@ class PassportService {
 	}
 
 	private async verifyCallback(jwt_payload: JwtPayload, done: VerifiedCallback): Promise<void> {
-		const email: string | undefined = jwt_payload?.userInfo?.email;
+		const id: string | undefined = jwt_payload?.userInfo?.id;
 
-		if (!email) {
+		if (!id) {
 			return done(null, false);
 		}
 
-		const user = await until(() => this.userPrismaService.getUserByEmail(email, { password: true }));
+		const user = await until(() => this.userPrismaService.getUserById(id, { password: true }));
 
 		if (user.error) {
 			return done(user.error, false);

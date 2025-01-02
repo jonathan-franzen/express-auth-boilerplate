@@ -8,7 +8,7 @@ import UserTokenPrismaService from '@/services/prisma/user-token/user-token.pris
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
 import UserGetPayload = Prisma.UserGetPayload;
@@ -21,13 +21,12 @@ class JwtService {
 		private readonly httpErrorService: HttpErrorService,
 	) {}
 
-	signAccessToken(id: string, email: string, roles: Role[]): string {
+	signAccessToken(id: string, email: string): string {
 		return jwt.sign(
 			{
 				userInfo: {
 					id,
 					email,
-					roles,
 				},
 			},
 			ACCESS_TOKEN_SECRET,

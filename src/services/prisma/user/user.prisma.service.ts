@@ -9,11 +9,12 @@ import UserUpdateInput = Prisma.UserUpdateInput;
 import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
 
 class UserPrismaService extends PrismaService {
-	async getUserById(id: string): Promise<User | null> {
+	async getUserById(id: string, omit?: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }> | null> {
 		return prisma.user.findUnique({
 			where: {
 				id,
 			},
+			omit: omit,
 		});
 	}
 
@@ -26,13 +27,30 @@ class UserPrismaService extends PrismaService {
 		});
 	}
 
-	async getAllUsers(omit?: UserOmit, page: number = 1, limit: number = 10): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
+	async getAllUsers(
+		omit: UserOmit,
+		page: number = 1,
+		limit: number = 10,
+		filters: Record<string, any> = {},
+		sortBy: string = 'createdAt',
+		sortOrder: 'asc' | 'desc' = 'asc',
+	): Promise<UserGetPayload<{ omit: UserOmit }>[] | null> {
 		const skip = (page - 1) * limit;
 
 		return prisma.user.findMany({
 			skip,
 			take: limit,
+			where: filters,
+			orderBy: {
+				[sortBy]: sortOrder,
+			},
 			omit,
+		});
+	}
+
+	async getUsersCount(filters?: Record<string, any>): Promise<number> {
+		return prisma.user.count({
+			where: filters || {},
 		});
 	}
 

@@ -8,9 +8,8 @@ import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-to
 import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
-import sleep from '@/utils/sleep.js';
 import { until } from '@open-draft/until';
-import { Prisma, ResetPasswordToken, Role, User } from '@prisma/client';
+import { Prisma, ResetPasswordToken, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 import { EventManager } from 'serverless-sqs-events';
@@ -159,7 +158,8 @@ class AuthController {
 				},
 			});
 
-			await sleep(70);
+			// Bcrypt to make sure response time is consistent.
+			await this.bcryptService.compare(password, 'random');
 			throw this.httpErrorService.invalidCredentialsError();
 		}
 
@@ -197,7 +197,7 @@ class AuthController {
 			}
 		}
 
-		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email, user.roles);
+		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email);
 		const newRefreshToken: string = this.jwtService.signRefreshToken(user.email);
 
 		await this.userTokenPrismaService.createUserToken({
@@ -260,9 +260,8 @@ class AuthController {
 		}
 
 		const email: string = decodedRefreshToken.email;
-		const roles: Role[] = userToken.user.roles;
 
-		const accessToken: string = this.jwtService.signAccessToken(userToken.userId, email, roles);
+		const accessToken: string = this.jwtService.signAccessToken(userToken.userId, email);
 		const newRefreshToken: string = this.jwtService.signRefreshToken(email);
 
 		await this.userTokenPrismaService.createUserToken({
