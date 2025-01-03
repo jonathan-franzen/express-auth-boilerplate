@@ -15,6 +15,11 @@ const app: Express = express();
 
 app.disable('x-powered-by');
 
+app.use((req, _res, next) => {
+	logger.info(`Incoming Request: ${req.method} ${req.url}`);
+	next();
+});
+
 app.use(rateLimit(expressRateLimitConfig));
 
 app.use(cookieParser());
