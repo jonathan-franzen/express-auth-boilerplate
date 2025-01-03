@@ -11,7 +11,9 @@
 
 ### DEMO
 
-If you want to test this with FE code, feel free to check out my other boilerplate [next-external-auth-boilerplate](https://github.com/jonathan-franzen/next-external-auth-boilerplate), which is built for this project and work out of the box.
+Frontend built with Next.js and works out of the box:
+
+[next-external-auth-boilerplate](https://github.com/jonathan-franzen/next-external-auth-boilerplate)
 
 
 ## Usage
@@ -33,7 +35,7 @@ Setup and run your own instance of [postgres](https://www.postgresql.org/), [mai
 - Run `yarn install` to install dependencies.
 - Run `yarn prisma generate` & `yarn prisma migrate dev`
 - Optionally, initialize the database with default users by running `yarn command db:seed`
-- Start by using `yarn dev` -- or run `yarn serverless-dev` to emulate [AWS lambda](https://aws.amazon.com/pm/lambda) locally.
+- Start by running `yarn dev` -- or run `yarn serverless-dev` to emulate [AWS lambda](https://aws.amazon.com/pm/lambda) locally.
 
 ## Customizations
 
@@ -41,7 +43,7 @@ Setup and run your own instance of [postgres](https://www.postgresql.org/), [mai
 
 If you would rather host this app another way, you can simply remove serverless by following these steps:
 
-1. `yarn remove serverless serevrless-offline serverless-offline-sqs serverless-http serverless-console serverless-sqs-events`
+1. `yarn remove serverless serevrless-offline serverless-offline-sqs serverless-http serverless-console`
 2. Open `package.json` and remove the script `serverless-dev`
 3. Delete files `serverless.yml`, `src/console.ts` && `src/worker.ts`
 4. In `src/server.ts` you can remove the import of `serverless-http`, and remove the `const handler` at the bottom.
@@ -107,8 +109,34 @@ To trigger non-blocking events like, sending emails, use SQS with a handler-func
 
 This is set up in `src/worker.ts` and initiated in `serverless.yml` on the function `worker`.
 
-Create and register new events in `src/events/index.ts`
+Create and register new events in `src/events/index.ts` & by updating `EventsInterface`
 
+```
+// src/interfaces/events/events.interface.ts
+import SendEmailOptionsMailerInterface from '@/interfaces/mailer/send-email-options.mailer.interface.js';
 
-### License
+interface EventsInterface {
+	sendEmail: SendEmailOptionsMailerInterface;
+	... Add more eventTypes here
+}
+
+export default EventsInterface;
+
+__________________________________________________________________
+
+// src/events/index.ts
+
+const eventManager = new EventManager<Events>(WORKQUEUE_URL, { region: AWS_REGION }, !AWS_LAMBDA_FUNCTION_NAME);
+
+eventManager.on('sendEmail', (data: SendEmailOptionsMailerInterface) => mailerService.sendEmail(data));
+
+... Register more events here
+
+export default eventManager;
+```
+
+And then simply call the event like this
+
+`await this.eventManager.send('sendEmail', emailOptions);`
+
 
