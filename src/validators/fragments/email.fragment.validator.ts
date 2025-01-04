@@ -8,7 +8,8 @@ function emailFragmentValidator({ optional }: { optional: boolean }): Validation
 			.withMessage({ message: 'Email is required.', status: 400 })
 			.isEmail()
 			.withMessage({ message: 'Not a valid email address.', status: 400 })
-			.trim(),
+			.trim()
+			.toLowerCase(),
 	];
 }
 
