@@ -103,8 +103,12 @@ class UserController {
 		return res.status(200).json({ message: 'Success.', user });
 	}
 
-	async deleteUser(req: Request, res: Response): Promise<Response> {
+	async deleteUser(req: UserRequestExpressInterface, res: Response): Promise<Response> {
 		const { id } = req.params;
+
+		if (id === req.user.id) {
+			throw this.httpErrorService.unableToDeleteSelfError();
+		}
 
 		const deleteUser = await until(() => this.userPrismaService.deleteUser(id));
 
@@ -112,7 +116,7 @@ class UserController {
 			if (this.userPrismaService.recordNotExistError(deleteUser.error)) {
 				throw this.httpErrorService.notFoundError();
 			} else {
-				logger.alert({ message: 'Failed to delete user.', context: { userId: id } });
+				logger.alert({ message: 'Failed to delete user.', context: { userId: id, error: deleteUser.error } });
 
 				throw this.httpErrorService.internalServerError();
 			}

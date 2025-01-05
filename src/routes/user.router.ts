@@ -60,7 +60,7 @@ userRouter.delete(
 	expressValidatorMiddleware(deleteIdUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await userController.deleteUser(req, res);
+		await userController.deleteUser(req as UserRequestExpressInterface, res);
 	}),
 );
 

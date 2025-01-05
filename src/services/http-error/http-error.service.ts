@@ -21,6 +21,10 @@ class HttpErrorService {
 		return createError(409, 'Email already in use.');
 	}
 
+	unableToDeleteSelfError() {
+		return createError(409, 'You cannot delete your own account.');
+	}
+
 	internalServerError() {
 		return createError(500, 'Internal server error.');
 	}
