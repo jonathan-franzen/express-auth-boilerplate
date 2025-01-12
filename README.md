@@ -15,7 +15,6 @@ Frontend built with Next.js and works out of the box:
 
 [next-external-auth-boilerplate](https://github.com/jonathan-franzen/next-external-auth-boilerplate)
 
-
 ## Usage
 
 ### Prerequisites
@@ -57,6 +56,7 @@ copy `.env` and paste it into `.env.local`.
 All variables are pretty self-explanatory...
 
 For `ACCESS_TOKEN_SECRET` & `REFRESH_TOKEN_SECRET`, you should generate secure values using:
+
 ```
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -102,7 +102,6 @@ yarn serverless invoke local --function console --data "yarn command db:seed"
 
 To init the database when running on serverless-offline(`yarn serverless-dev`).
 
-
 #### Worker
 
 To trigger non-blocking events like, sending emails, use SQS with a handler-function that listens to new messages.
@@ -138,5 +137,3 @@ export default eventManager;
 And then simply call the event like this
 
 `await this.eventManager.send('sendEmail', emailOptions);`
-
-
