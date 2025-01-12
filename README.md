@@ -36,6 +36,8 @@ Setup and run your own instance of [postgres](https://www.postgresql.org/), [mai
 - Optionally, initialize the database with default users by running `yarn command db:seed`
 - Start by running `yarn dev` -- or run `yarn serverless-dev` to emulate [AWS lambda](https://aws.amazon.com/pm/lambda) locally.
 
+If using the provided docker-compose setup, you can view emails on http://localhost:8025/.
+
 ## Customizations
 
 ### Remove serverless
