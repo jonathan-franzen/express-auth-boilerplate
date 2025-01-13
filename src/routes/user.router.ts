@@ -8,10 +8,10 @@ import getUserValidator from '@/validators/user/get.user.validator.js';
 import patchIdUserValidator from '@/validators/user/patch-id.user.validator.js';
 import patchMeUserValidator from '@/validators/user/patch-me.user.validator.js';
 import { Role } from '@prisma/client';
-import express, { Request, Response, Router } from 'express';
+import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 
-const userRouter: Router = express.Router();
+const userRouter = express.Router();
 
 userRouter.get(
 	'/me',

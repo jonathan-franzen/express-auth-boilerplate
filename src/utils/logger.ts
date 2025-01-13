@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import * as os from 'os';
 import { APP_ENV } from '@/constants/environment.constants.js';
-import { Format, TransformableInfo } from 'logform';
-import winston, { createLogger, format, Logger, transports } from 'winston';
+import { TransformableInfo } from 'logform';
+import winston, { createLogger, format, transports } from 'winston';
 
 const { timestamp, printf } = format;
 export const loggerAsyncStorage = new AsyncLocalStorage<{
@@ -20,7 +20,7 @@ const monologLevels = {
 	debug: 100,
 };
 
-const logFormat: Format = printf(({ level, message, context, extra }: TransformableInfo): string => {
+const logFormat = printf(({ level, message, context, extra }: TransformableInfo): string => {
 	if (!context) {
 		context = {};
 	}
@@ -51,7 +51,7 @@ const logFormat: Format = printf(({ level, message, context, extra }: Transforma
 	});
 });
 
-const logger: Logger = createLogger({
+const logger = createLogger({
 	level: APP_ENV === 'prod' ? 'warning' : 'debug',
 	format: format.combine(timestamp(), logFormat),
 	transports: [new transports.Console()],

@@ -7,15 +7,15 @@ import passportService from '@/services/passport/index.js';
 import logger from '@/utils/logger.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { Express } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import serverless from 'serverless-http';
 
-const app: Express = express();
+const app = express();
 
 app.disable('x-powered-by');
 
-app.use((req, _res, next) => {
+app.use((req: Request, _res: Response, next: NextFunction): void => {
 	logger.info(`Incoming Request: ${req.method} ${req.url}`);
 	next();
 });

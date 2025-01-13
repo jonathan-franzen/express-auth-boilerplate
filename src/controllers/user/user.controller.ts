@@ -33,7 +33,7 @@ class UserController {
 				throw this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
-		const me: User = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
+		const me = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
 
 		return res.status(200).json({ message: 'Success.', me });
 	}
@@ -68,7 +68,7 @@ class UserController {
 	async getUser(req: Request, res: Response): Promise<Response> {
 		const { id } = req.params;
 
-		const user: User | null = await this.userPrismaService.getUserById(id);
+		const user = await this.userPrismaService.getUserById(id);
 
 		if (!user) {
 			logger.warning({
@@ -98,7 +98,7 @@ class UserController {
 				throw this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
-		const user: User = await this.userPrismaService.updateUser({ id }, { ...userUpdateInput });
+		const user = await this.userPrismaService.updateUser({ id }, { ...userUpdateInput });
 
 		return res.status(200).json({ message: 'Success.', user });
 	}
@@ -110,7 +110,7 @@ class UserController {
 			throw this.httpErrorService.unableToDeleteSelfError();
 		}
 
-		const deleteUser = await until(() => this.userPrismaService.deleteUser(id));
+		const deleteUser = await until((): Promise<User> => this.userPrismaService.deleteUser(id));
 
 		if (deleteUser.error) {
 			if (this.userPrismaService.recordNotExistError(deleteUser.error)) {

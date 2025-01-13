@@ -9,10 +9,10 @@ import postResendVerifyEmailAuthValidator from '@/validators/auth/post-resend-ve
 import postResetPasswordTokenAuthValidator from '@/validators/auth/post-reset-password-token.auth.validator.js';
 import postResetPasswordAuthValidator from '@/validators/auth/post-reset-password.auth.validator.js';
 import postVerifyEmailTokenAuthValidator from '@/validators/auth/post-verify-email-token.auth.validator.js';
-import express, { Request, Response, Router } from 'express';
+import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 
-const authRouter: Router = express.Router();
+const authRouter = express.Router();
 
 authRouter.post(
 	'/register',

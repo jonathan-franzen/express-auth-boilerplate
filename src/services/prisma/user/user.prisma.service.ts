@@ -18,13 +18,11 @@ class UserPrismaService extends PrismaService {
 		});
 	}
 
-	async getUserByEmail(email: string, omit?: UserOmit): Promise<UserGetPayload<{ omit: UserOmit }> | null> {
+	async getUserByEmail<T extends Prisma.UserGetPayload<{ omit: U }>, U extends { [key: string]: true } = {}>(email: string, omit?: U): Promise<T | null> {
 		return prisma.user.findUnique({
-			where: {
-				email,
-			},
-			omit: omit,
-		});
+			where: { email },
+			omit,
+		}) as unknown as Promise<T | null>;
 	}
 
 	async getAllUsers(

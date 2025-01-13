@@ -8,10 +8,8 @@ import UserTokenPrismaService from '@/services/prisma/user-token/user-token.pris
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
-import { Prisma } from '@prisma/client';
+import { ResetPasswordToken, UserToken } from '@prisma/client';
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
-
-import UserGetPayload = Prisma.UserGetPayload;
 
 class JwtService {
 	constructor(
@@ -45,7 +43,7 @@ class JwtService {
 			jwt.verify(token, REFRESH_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || typeof decoded !== 'object' || !decoded.email) {
 					if (deleteTokenOnError) {
-						const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(token));
+						const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(token));
 						if (deleteRefreshToken.error && !this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
 							logger.alert({ message: 'Failed to delete invalid refresh token.', context: err });
 
@@ -94,14 +92,14 @@ class JwtService {
 					});
 
 					if (err instanceof jwt.TokenExpiredError) {
-						const decodedNew: JwtPayload | string | null = jwt.decode(token);
+						const decodedNew = jwt.decode(token);
 
 						if (typeof decodedNew !== 'object' || !decodedNew || !decodedNew.verifyEmail.email) {
 							return reject(this.httpErrorService.tokenExpiredError());
 						}
 
-						const email: string = decodedNew.verifyEmail.email;
-						const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+						const email = decodedNew.verifyEmail.email;
+						const foundUser = await this.userPrismaService.getUserByEmail(email, {
 							password: true,
 							roles: true,
 						});
@@ -136,7 +134,7 @@ class JwtService {
 		return new Promise((resolve: JwtVerifyResolveJwtInterface, reject: JwtVerifyRejectJwtInterface): void => {
 			jwt.verify(token, ACCESS_TOKEN_SECRET, async (err: VerifyErrors | null, decoded: JwtPayload | string | undefined): Promise<void> => {
 				if (err || !decoded || typeof decoded !== 'object' || !decoded.resetPassword?.email) {
-					const deleteResetPasswordToken = await until(() => this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token));
+					const deleteResetPasswordToken = await until((): Promise<ResetPasswordToken> => this.resetPasswordTokenPrismaService.deleteResetPasswordToken(token));
 
 					if (deleteResetPasswordToken.error && !this.resetPasswordTokenPrismaService.recordNotExistError(deleteResetPasswordToken.error)) {
 						logger.alert({ message: 'Failed to delete invalid reset password token.', context: { error: err } });

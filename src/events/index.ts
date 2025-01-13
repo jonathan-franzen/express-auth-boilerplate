@@ -6,6 +6,6 @@ import { EventManager } from 'serverless-sqs-events';
 
 const eventManager = new EventManager<Events>(WORKQUEUE_URL, { region: AWS_REGION }, !AWS_LAMBDA_FUNCTION_NAME);
 
-eventManager.on('sendEmail', (data: SendEmailOptionsMailerInterface) => mailerService.sendEmail(data));
+eventManager.on('sendEmail', (data: SendEmailOptionsMailerInterface): Promise<void> => mailerService.sendEmail(data));
 
 export default eventManager;

@@ -9,14 +9,9 @@ import UserTokenPrismaService from '@/services/prisma/user-token/user-token.pris
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
-import { Prisma, ResetPasswordToken, User } from '@prisma/client';
+import { UserToken } from '@prisma/client';
 import { Request, Response } from 'express';
-import { JwtPayload } from 'jsonwebtoken';
 import { EventManager } from 'serverless-sqs-events';
-
-import UserTokenInclude = Prisma.UserTokenInclude;
-import UserTokenGetPayload = Prisma.UserTokenGetPayload;
-import UserGetPayload = Prisma.UserGetPayload;
 
 class AuthController {
 	constructor(
@@ -33,7 +28,7 @@ class AuthController {
 	async register(req: Request, res: Response): Promise<Response> {
 		const { email, password, firstName, lastName } = req.body;
 
-		const duplicate: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const duplicate = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -49,16 +44,16 @@ class AuthController {
 			throw this.httpErrorService.emailAlreadyInUseError();
 		}
 
-		const hashedPassword: string = await this.bcryptService.hash(password);
+		const hashedPassword = await this.bcryptService.hash(password);
 
-		const createdUser: User = await this.userPrismaService.createUser({
+		const createdUser = await this.userPrismaService.createUser({
 			email,
 			password: hashedPassword,
 			firstName,
 			lastName,
 		});
 
-		const verifyToken: string = this.jwtService.signVerifyEmailToken(createdUser.email);
+		const verifyToken = this.jwtService.signVerifyEmailToken(createdUser.email);
 
 		const emailOptions = await this.mailerService.getVerifyEmailOptions(createdUser, verifyToken);
 
@@ -73,15 +68,15 @@ class AuthController {
 	async verifyEmail(req: Request, res: Response): Promise<Response> {
 		const { verifyEmailToken } = req.params;
 
-		const decodedVerifyEmailToken: JwtPayload = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
+		const decodedVerifyEmailToken = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
 
 		if (decodedVerifyEmailToken.alreadyVerified) {
 			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
-		const email: string = decodedVerifyEmailToken.verifyEmail.email;
+		const email = decodedVerifyEmailToken.verifyEmail.email;
 
-		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const foundUser = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -122,7 +117,7 @@ class AuthController {
 	async resendVerifyEmail(req: Request, res: Response): Promise<Response> {
 		const { email } = req.body;
 
-		const user: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const user = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -135,7 +130,7 @@ class AuthController {
 			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
-		const verifyToken: string = this.jwtService.signVerifyEmailToken(user.email);
+		const verifyToken = this.jwtService.signVerifyEmailToken(user.email);
 
 		const emailOptions = await this.mailerService.getVerifyEmailOptions(user, verifyToken);
 
@@ -148,7 +143,7 @@ class AuthController {
 		const { email, password } = req.body;
 		const { refreshToken } = req.cookies;
 
-		const user: User | null = await this.userPrismaService.getUserByEmail(email);
+		const user = await this.userPrismaService.getUserByEmail(email);
 
 		if (!user) {
 			logger.warning({
@@ -177,7 +172,7 @@ class AuthController {
 		}
 
 		if (refreshToken) {
-			const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+			const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
 			if (deleteRefreshToken.error) {
 				if (this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
@@ -197,8 +192,8 @@ class AuthController {
 			}
 		}
 
-		const accessToken: string = this.jwtService.signAccessToken(user.id, user.email);
-		const newRefreshToken: string = this.jwtService.signRefreshToken(user.email);
+		const accessToken = this.jwtService.signAccessToken(user.id, user.email);
+		const newRefreshToken = this.jwtService.signRefreshToken(user.email);
 
 		await this.userTokenPrismaService.createUserToken({
 			token: newRefreshToken,
@@ -218,14 +213,14 @@ class AuthController {
 	async refresh(req: Request, res: Response): Promise<Response> {
 		const { refreshToken } = req.cookies;
 
-		const userToken: UserTokenGetPayload<{ include: UserTokenInclude }> | null = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
+		const userToken = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
 			user: true,
 		});
 
 		if (!userToken) {
-			const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, false);
-			const email: string = decodedRefreshToken.email;
-			const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+			const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, false);
+			const email = decodedRefreshToken.email;
+			const foundUser = await this.userPrismaService.getUserByEmail(email, {
 				password: true,
 				roles: true,
 			});
@@ -246,9 +241,9 @@ class AuthController {
 			throw this.httpErrorService.tokenInvalidError();
 		}
 
-		const decodedRefreshToken: JwtPayload = await this.jwtService.verifyRefreshToken(refreshToken, true);
+		const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, true);
 
-		const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+		const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
 		if (deleteRefreshToken.error) {
 			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
@@ -259,10 +254,10 @@ class AuthController {
 			}
 		}
 
-		const email: string = decodedRefreshToken.email;
+		const email = decodedRefreshToken.email;
 
-		const accessToken: string = this.jwtService.signAccessToken(userToken.userId, email);
-		const newRefreshToken: string = this.jwtService.signRefreshToken(email);
+		const accessToken = this.jwtService.signAccessToken(userToken.userId, email);
+		const newRefreshToken = this.jwtService.signRefreshToken(email);
 
 		await this.userTokenPrismaService.createUserToken({
 			userId: userToken.userId,
@@ -282,7 +277,7 @@ class AuthController {
 	async sendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
 		const { email } = req.body;
 
-		const user: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const user = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -305,15 +300,15 @@ class AuthController {
 	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
 
-		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
-		const email: string = decodedResetPasswordToken.resetPassword.email;
-		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
+		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
+		const email = decodedResetPasswordToken.resetPassword.email;
+		const tokenExists = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
 			throw this.httpErrorService.tokenExpiredError();
 		}
 
-		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const foundUser = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -336,15 +331,15 @@ class AuthController {
 		const { resetPasswordToken } = req.params;
 		const { password } = req.body;
 
-		const decodedResetPasswordToken: JwtPayload = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
-		const email: string = decodedResetPasswordToken.resetPassword.email;
-		const tokenExists: ResetPasswordToken | null = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
+		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
+		const email = decodedResetPasswordToken.resetPassword.email;
+		const tokenExists = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
 
 		if (!tokenExists) {
 			throw this.httpErrorService.tokenExpiredError();
 		}
 
-		const foundUser: UserGetPayload<{ omit: { password: true; roles: true } }> | null = await this.userPrismaService.getUserByEmail(email, {
+		const foundUser = await this.userPrismaService.getUserByEmail(email, {
 			password: true,
 			roles: true,
 		});
@@ -360,7 +355,7 @@ class AuthController {
 			throw this.httpErrorService.tokenInvalidError();
 		}
 
-		const hashedPassword: string = await this.bcryptService.hash(password);
+		const hashedPassword = await this.bcryptService.hash(password);
 
 		await this.userPrismaService.updateUser(
 			{ email },
@@ -377,7 +372,7 @@ class AuthController {
 	async logout(req: Request, res: Response): Promise<Response> {
 		const { refreshToken } = req.cookies;
 
-		const deleteRefreshToken = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+		const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
 		if (deleteRefreshToken.error) {
 			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {

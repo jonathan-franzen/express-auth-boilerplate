@@ -4,7 +4,7 @@ function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: 
 	return [
 		query('filters')
 			.optional()
-			.custom((filter) => {
+			.custom((filter: string): boolean => {
 				let parsedFilter;
 				try {
 					parsedFilter = JSON.parse(filter);
@@ -16,7 +16,7 @@ function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: 
 					throw new Error();
 				}
 
-				const invalidKeys = Object.keys(parsedFilter).filter((key) => !allowedFiltersKeys.includes(key));
+				const invalidKeys = Object.keys(parsedFilter).filter((key: string): boolean => !allowedFiltersKeys.includes(key));
 
 				if (invalidKeys.length > 0) {
 					throw new Error();
@@ -24,14 +24,14 @@ function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: 
 
 				return true;
 			})
-			.withMessage((value) => {
+			.withMessage((value: string): { message: string; status: number } | void => {
 				try {
 					const parsedFilter = JSON.parse(value);
 					if (typeof parsedFilter !== 'object' || parsedFilter === null) {
 						return { message: 'Filter must be a valid object.', status: 400 };
 					}
 
-					const invalidKeys = Object.keys(parsedFilter).filter((key) => !allowedFiltersKeys.includes(key));
+					const invalidKeys = Object.keys(parsedFilter).filter((key: string): boolean => !allowedFiltersKeys.includes(key));
 					if (invalidKeys.length > 0) {
 						return {
 							message: `Invalid filter keys: ${invalidKeys.join(', ')}. Allowed keys are: ${allowedFiltersKeys.join(', ')}.`,

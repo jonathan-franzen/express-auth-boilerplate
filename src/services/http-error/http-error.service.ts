@@ -1,31 +1,31 @@
-import createError from 'http-errors';
+import createError, { HttpError } from 'http-errors';
 
 class HttpErrorService {
-	invalidCredentialsError() {
+	invalidCredentialsError(): HttpError<401> {
 		return createError(401, 'Invalid credentials.');
 	}
 
-	tokenInvalidError() {
+	tokenInvalidError(): HttpError<401> {
 		return createError(401, 'Token invalid.');
 	}
 
-	tokenExpiredError() {
+	tokenExpiredError(): HttpError<401> {
 		return createError(401, 'Token expired.');
 	}
 
-	notFoundError(resource = 'Resource') {
+	notFoundError(resource = 'Resource'): HttpError<404> {
 		return createError(404, `${resource} not found.`);
 	}
 
-	emailAlreadyInUseError() {
+	emailAlreadyInUseError(): HttpError<409> {
 		return createError(409, 'Email already in use.');
 	}
 
-	unableToDeleteSelfError() {
+	unableToDeleteSelfError(): HttpError<409> {
 		return createError(409, 'You cannot delete your own account.');
 	}
 
-	internalServerError() {
+	internalServerError(): HttpError<500> {
 		return createError(500, 'Internal server error.');
 	}
 }

@@ -28,7 +28,7 @@ class MailerService {
 
 	async sendEmail(options: SendEmailOptionsMailerInterface): Promise<void> {
 		const { to, subject, templateName, context } = options;
-		const html: string = await this.renderTemplate(templateName, context);
+		const html = await this.renderTemplate(templateName, context);
 
 		const mailOptions = {
 			from: MAILER_FROM,
