@@ -1,8 +1,8 @@
 import { body, ValidationChain } from 'express-validator';
 
-function passwordFragmentValidator({ includeStrongCheck }: { includeStrongCheck: boolean }): ValidationChain[] {
+function passwordFragmentValidator({ key, includeStrongCheck }: { key?: string; includeStrongCheck: boolean }): ValidationChain[] {
 	return [
-		body('password')
+		body(key || 'password')
 			.exists()
 			.withMessage({ message: 'Password is required.', status: 400 })
 			.isString()

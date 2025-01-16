@@ -7,6 +7,7 @@ import getIdUserValidator from '@/validators/user/get-id.user.validator.js';
 import getUserValidator from '@/validators/user/get.user.validator.js';
 import patchIdUserValidator from '@/validators/user/patch-id.user.validator.js';
 import patchMeUserValidator from '@/validators/user/patch-me.user.validator.js';
+import postMeResetPasswordUserValidator from '@/validators/user/post-me-reset-password.user.validator.js';
 import { Role } from '@prisma/client';
 import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
@@ -25,6 +26,14 @@ userRouter.patch(
 	expressValidatorMiddleware(patchMeUserValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.patchMe(req as UserRequestExpressInterface, res);
+	}),
+);
+
+userRouter.post(
+	'/me/reset-password',
+	expressValidatorMiddleware(postMeResetPasswordUserValidator()),
+	asyncHandler(async (req: Request, res: Response): Promise<void> => {
+		await userController.postMeResetPassword(req as UserRequestExpressInterface, res);
 	}),
 );
 

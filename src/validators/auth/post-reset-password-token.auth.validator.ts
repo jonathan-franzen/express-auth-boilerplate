@@ -3,7 +3,7 @@ import resetPasswordTokenFragmentValidator from '@/validators/fragments/reset-pa
 import { ValidationChain } from 'express-validator';
 
 function postResetPasswordTokenAuthValidator(): ValidationChain[] {
-	return [...resetPasswordTokenFragmentValidator(), ...passwordFragmentValidator({ includeStrongCheck: true })];
+	return [...resetPasswordTokenFragmentValidator(), ...passwordFragmentValidator({ key: 'newPassword', includeStrongCheck: true })];
 }
 
 export default postResetPasswordTokenAuthValidator;

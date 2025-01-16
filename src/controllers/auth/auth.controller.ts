@@ -329,7 +329,7 @@ class AuthController {
 
 	async resetPassword(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
-		const { password } = req.body;
+		const { newPassword } = req.body;
 
 		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
 		const email = decodedResetPasswordToken.resetPassword.email;
@@ -355,7 +355,7 @@ class AuthController {
 			throw this.httpErrorService.tokenInvalidError();
 		}
 
-		const hashedPassword = await this.bcryptService.hash(password);
+		const hashedPassword = await this.bcryptService.hash(newPassword);
 
 		await this.userPrismaService.updateUser(
 			{ email },

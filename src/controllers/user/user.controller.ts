@@ -1,5 +1,9 @@
+import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import BcryptService from '@/services/bcrypt/bcrypt.service.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
+import JwtService from '@/services/jwt/jwt.service.js';
+import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
@@ -11,6 +15,9 @@ import UserGetPayload = Prisma.UserGetPayload;
 class UserController {
 	constructor(
 		private readonly userPrismaService: UserPrismaService,
+		private readonly userTokenPrismaService: UserTokenPrismaService,
+		private readonly bcryptService: BcryptService,
+		private readonly jwtService: JwtService,
 		private readonly httpErrorService: HttpErrorService,
 	) {}
 
@@ -36,6 +43,68 @@ class UserController {
 		const me = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
 
 		return res.status(200).json({ message: 'Success.', me });
+	}
+
+	async postMeResetPassword(req: UserRequestExpressInterface, res: Response): Promise<Response> {
+		const { password, newPassword } = req.body;
+
+		// We need to fetch user again, since we need the password which is not provided by middleware passport.
+		const user = await this.userPrismaService.getUserById(req.user.id);
+
+		if (!user) {
+			logger.alert({
+				message: 'User not found when trying to reset password.',
+				context: {
+					id: req.user.id,
+				},
+			});
+
+			throw this.httpErrorService.internalServerError();
+		}
+
+		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
+
+		if (!passwordsMatch) {
+			logger.warning({
+				message: 'Incorrect password.',
+				context: {
+					email: user.email,
+				},
+			});
+
+			throw this.httpErrorService.invalidCredentialsError();
+		}
+
+		const hashedNewPassword = await this.bcryptService.hash(newPassword);
+
+		await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
+
+		await this.userPrismaService.updateUser(
+			{ email: user.email },
+			{
+				password: hashedNewPassword,
+			},
+		);
+
+		const accessToken = this.jwtService.signAccessToken(user.id, user.email);
+		const refreshToken = this.jwtService.signRefreshToken(user.email);
+
+		await this.userTokenPrismaService.createUserToken({
+			userId: user.id,
+			token: refreshToken,
+		});
+
+		res.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			secure: process.env.APP_ENV === 'prod',
+			sameSite: 'none',
+			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
+		});
+
+		return res.status(200).json({
+			message: 'Password successfully updated.',
+			accessToken,
+		});
 	}
 
 	async getAllUsers(req: Request, res: Response): Promise<Response> {
