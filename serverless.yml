@@ -38,9 +38,9 @@ provider:
     APP_ENV: dev
     FRONTEND_URL: http://localhost:3000
     MAILER_FROM: '"Example Team" <info@example.com>'
-    PATH: '/Users/jonathanfranzen/.nvm/versions/node/v20.18.1/bin:/Users/jonathanfranzen/.yarn/bin:/Users/jonathanfranzen/.config/yarn/global/node_modules/.bin:/Users/jonathanfranzen/bin:/usr/local/bin:/usr/bin:/bin'
     AWS_REGION: eu-north-1
     WORKQUEUE_URL: http://localhost:9324/000000000000/workqueue
+		# PATH: Only if serverless-offline can't find your local Node installment
 
   iamRoleStatements:
     - Effect: Allow
