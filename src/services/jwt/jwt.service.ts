@@ -1,7 +1,6 @@
 import { ACCESS_TOKEN_LIFETIME, REFRESH_TOKEN_LIFETIME, RESET_PASSWORD_TOKEN_LIFETIME, VERIFY_EMAIL_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '@/constants/environment.constants.js';
-import JwtVerifyRejectJwtInterface from '@/interfaces/jwt/jwt-verify-reject.jwt.interface.js';
-import JwtVerifyResolveJwtInterface from '@/interfaces/jwt/jwt-verify-resolve.jwt.interface.js';
+import { JwtVerifyRejectJwtInterface, JwtVerifyResolveJwtInterface } from '@/interfaces/jwt/jwt.interfaces.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
 import ResetPasswordTokenPrismaService from '@/services/prisma/reset-password-token/reset-password-token.prisma.service.js';
 import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
