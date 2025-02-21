@@ -1,7 +1,6 @@
 import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js';
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import { until } from '@open-draft/until';
-import { User } from '@prisma/client';
 import { JwtPayload } from 'jsonwebtoken';
 import passport, { PassportStatic } from 'passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
@@ -19,6 +18,10 @@ class PassportService {
 		);
 	}
 
+	getPassportInstance(): PassportStatic {
+		return passport;
+	}
+
 	private async verifyCallback(jwt_payload: JwtPayload, done: VerifiedCallback): Promise<void> {
 		const id = jwt_payload?.userInfo?.id;
 
@@ -26,19 +29,15 @@ class PassportService {
 			return done(null, false);
 		}
 
-		const user = await until((): Promise<User | null> => this.userPrismaService.getUserById(id, { password: true }));
+		const { data, error } = await until(() => this.userPrismaService.getUserById(id));
 
-		if (user.error) {
-			return done(user.error, false);
-		} else if (!user.data) {
+		if (error) {
+			return done(error, false);
+		} else if (!data) {
 			return done(null, false);
 		}
 
-		return done(null, user.data);
-	}
-
-	getPassportInstance(): PassportStatic {
-		return passport;
+		return done(null, data);
 	}
 }
 

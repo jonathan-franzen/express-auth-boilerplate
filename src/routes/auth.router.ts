@@ -18,7 +18,7 @@ authRouter.post(
 	'/register',
 	expressValidatorMiddleware(postRegisterAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.register(req, res);
+		await authController.postRegister(req, res);
 	}),
 );
 
@@ -26,7 +26,7 @@ authRouter.post(
 	'/verify-email/:verifyEmailToken',
 	expressValidatorMiddleware(postVerifyEmailTokenAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.verifyEmail(req, res);
+		await authController.postVerifyEmail(req, res);
 	}),
 );
 
@@ -34,7 +34,7 @@ authRouter.post(
 	'/resend-verify-email',
 	expressValidatorMiddleware(postResendVerifyEmailAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.resendVerifyEmail(req, res);
+		await authController.postResendVerifyEmail(req, res);
 	}),
 );
 
@@ -42,7 +42,7 @@ authRouter.post(
 	'/login',
 	expressValidatorMiddleware(postLoginAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.login(req, res);
+		await authController.postLogin(req, res);
 	}),
 );
 
@@ -50,7 +50,7 @@ authRouter.post(
 	'/refresh',
 	expressValidatorMiddleware(postRefreshAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.refresh(req, res);
+		await authController.postRefresh(req, res);
 	}),
 );
 
@@ -58,7 +58,7 @@ authRouter.post(
 	'/reset-password',
 	expressValidatorMiddleware(postResetPasswordAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.sendResetPasswordEmail(req, res);
+		await authController.postSendResetPasswordEmail(req, res);
 	}),
 );
 
@@ -66,7 +66,7 @@ authRouter.get(
 	'/reset-password/:resetPasswordToken',
 	expressValidatorMiddleware(getResetPasswordTokenAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.verifyResetPasswordToken(req, res);
+		await authController.getVerifyResetPasswordToken(req, res);
 	}),
 );
 
@@ -74,7 +74,7 @@ authRouter.post(
 	'/reset-password/:resetPasswordToken',
 	expressValidatorMiddleware(postResetPasswordTokenAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.resetPassword(req, res);
+		await authController.postResetPassword(req, res);
 	}),
 );
 
@@ -82,7 +82,7 @@ authRouter.delete(
 	'/logout',
 	expressValidatorMiddleware(deleteLogoutAuthValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await authController.logout(req, res);
+		await authController.deleteLogout(req, res);
 	}),
 );
 

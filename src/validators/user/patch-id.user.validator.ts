@@ -2,9 +2,8 @@ import emailFragmentValidator from '@/validators/fragments/email.fragment.valida
 import firstNameFragmentValidator from '@/validators/fragments/first-name.fragment.validator.js';
 import idFragmentValidator from '@/validators/fragments/id.fragment.validator.js';
 import lastNameFragmentValidator from '@/validators/fragments/last-name.fragment.validator.js';
-import { ValidationChain } from 'express-validator';
 
-function patchIdUserValidator(): ValidationChain[] {
+function patchIdUserValidator() {
 	return [
 		...idFragmentValidator(),
 		...emailFragmentValidator({ optional: true }),

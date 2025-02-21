@@ -1,7 +1,7 @@
-import * as path from 'path';
 import { APP_ENV } from '@/constants/environment.constants.js';
 import MailerService from '@/services/mailer/mailer.service.js';
 import nodemailer from 'nodemailer';
+import * as path from 'path';
 
 const transport = nodemailer.createTransport(
 	APP_ENV === 'dev'

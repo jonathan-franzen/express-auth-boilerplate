@@ -1,6 +1,6 @@
-import { query, ValidationChain } from 'express-validator';
+import { query } from 'express-validator';
 
-function sortByFragmentValidator({ allowedSortBy }: { allowedSortBy: string[] }): ValidationChain[] {
+function sortByFragmentValidator({ allowedSortBy }: { allowedSortBy: string[] }) {
 	return [
 		query('sortBy')
 			.optional()

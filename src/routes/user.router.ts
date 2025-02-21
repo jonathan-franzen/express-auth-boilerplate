@@ -42,7 +42,7 @@ userRouter.get(
 	expressValidatorMiddleware(getUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
-		await userController.getAllUsers(req, res);
+		await userController.getUsers(req, res);
 	}),
 );
 

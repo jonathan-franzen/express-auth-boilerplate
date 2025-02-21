@@ -1,8 +1,8 @@
 interface SendEmailOptionsMailerInterface {
-	to: string;
+	context: Record<string, string>;
 	subject: string;
 	templateName: string;
-	context: Record<string, any>;
+	to: string;
 }
 
 export default SendEmailOptionsMailerInterface;

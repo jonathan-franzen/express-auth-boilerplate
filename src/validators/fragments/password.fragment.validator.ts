@@ -1,6 +1,6 @@
-import { body, ValidationChain } from 'express-validator';
+import { body } from 'express-validator';
 
-function passwordFragmentValidator({ key, includeStrongCheck }: { key?: string; includeStrongCheck: boolean }): ValidationChain[] {
+function passwordFragmentValidator({ includeStrongCheck, key }: { includeStrongCheck: boolean; key?: string }) {
 	return [
 		body(key || 'password')
 			.exists()
@@ -11,9 +11,9 @@ function passwordFragmentValidator({ key, includeStrongCheck }: { key?: string; 
 			.isStrongPassword({
 				minLength: 8,
 				minLowercase: 1,
-				minUppercase: 1,
 				minNumbers: 1,
 				minSymbols: 0,
+				minUppercase: 1,
 			})
 			.withMessage({
 				message: 'Password must contain at least one uppercase letter, one number, and be at least 8 characters long.',

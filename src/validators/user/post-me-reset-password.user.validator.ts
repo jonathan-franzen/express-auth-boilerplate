@@ -1,8 +1,7 @@
 import passwordFragmentValidator from '@/validators/fragments/password.fragment.validator.js';
-import { ValidationChain } from 'express-validator';
 
-function postMeResetPasswordUserValidator(): ValidationChain[] {
-	return [...passwordFragmentValidator({ includeStrongCheck: false }), ...passwordFragmentValidator({ key: 'newPassword', includeStrongCheck: true })];
+function postMeResetPasswordUserValidator() {
+	return [...passwordFragmentValidator({ includeStrongCheck: false }), ...passwordFragmentValidator({ includeStrongCheck: true, key: 'newPassword' })];
 }
 
 export default postMeResetPasswordUserValidator;

@@ -1,6 +1,6 @@
-import { query, ValidationChain } from 'express-validator';
+import { query } from 'express-validator';
 
-function sortOrderFragmentValidator(): ValidationChain[] {
+function sortOrderFragmentValidator() {
 	return [query('sortOrder').optional().isIn(['asc', 'desc']).withMessage({ message: 'Sort order invalid. Value must be "asc" or "desc".', status: 400 })];
 }
 

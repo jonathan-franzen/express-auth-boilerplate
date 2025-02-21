@@ -1,6 +1,6 @@
-import { query, ValidationChain } from 'express-validator';
+import { query } from 'express-validator';
 
-function pageFragmentValidator(): ValidationChain[] {
+function pageFragmentValidator() {
 	return [query('page').optional().isNumeric().withMessage({ message: 'Page must be numerical.', status: 400 })];
 }
 

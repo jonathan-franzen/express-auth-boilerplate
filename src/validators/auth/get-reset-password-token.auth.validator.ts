@@ -1,7 +1,6 @@
 import resetPasswordTokenFragmentValidator from '@/validators/fragments/reset-password-token.fragment.validator.js';
-import { ValidationChain } from 'express-validator';
 
-function getResetPasswordTokenAuthValidator(): ValidationChain[] {
+function getResetPasswordTokenAuthValidator() {
 	return [...resetPasswordTokenFragmentValidator()];
 }
 

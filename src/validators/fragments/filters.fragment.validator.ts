@@ -1,6 +1,6 @@
-import { query, ValidationChain } from 'express-validator';
+import { query } from 'express-validator';
 
-function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: string[] }): ValidationChain[] {
+function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: string[] }) {
 	return [
 		query('filters')
 			.optional()
@@ -8,7 +8,7 @@ function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: 
 				let parsedFilter;
 				try {
 					parsedFilter = JSON.parse(filter);
-				} catch (err) {
+				} catch {
 					throw new Error();
 				}
 
@@ -24,7 +24,7 @@ function filtersFragmentValidator({ allowedFiltersKeys }: { allowedFiltersKeys: 
 
 				return true;
 			})
-			.withMessage((value: string): { message: string; status: number } | void => {
+			.withMessage((value: string): void | { message: string; status: number } => {
 				try {
 					const parsedFilter = JSON.parse(value);
 					if (typeof parsedFilter !== 'object' || parsedFilter === null) {

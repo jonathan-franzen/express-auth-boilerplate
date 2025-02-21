@@ -3,9 +3,8 @@ import limitFragmentValidator from '@/validators/fragments/limit.fragment.valida
 import pageFragmentValidator from '@/validators/fragments/page.fragment.validator.js';
 import sortByFragmentValidator from '@/validators/fragments/sort-by.fragment.validator.js';
 import sortOrderFragmentValidator from '@/validators/fragments/sort-order.fragment.validator.js';
-import { ValidationChain } from 'express-validator';
 
-function getUserValidator(): ValidationChain[] {
+function getUserValidator() {
 	const allowedFiltersKeys = ['email'];
 	const allowedSortBy = ['createdAt', 'firstName', 'lastName'];
 

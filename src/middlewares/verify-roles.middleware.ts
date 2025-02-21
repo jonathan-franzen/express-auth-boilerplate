@@ -8,8 +8,8 @@ function verifyRolesMiddleware(...allowedRoles: Role[]): (req: Request, res: Res
 			res.status(403).json({ error: 'Unauthorized.' });
 		}
 
-		const rolesArray: Role[] = [...allowedRoles];
-		const canAccess: boolean = (req as UserRequestExpressInterface).user?.roles.some((role: Role): boolean => rolesArray.includes(role));
+		const rolesArray = [...allowedRoles];
+		const canAccess = (req as UserRequestExpressInterface).user?.roles.some((role: Role): boolean => rolesArray.includes(role));
 
 		if (!canAccess) {
 			res.status(403).json({ error: 'Unauthorized.' });

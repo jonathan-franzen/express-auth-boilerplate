@@ -1,10 +1,8 @@
-import { Prisma } from '@prisma/client';
+import { UserPrismaInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
 import { Request } from 'express';
 
-import UserGetPayload = Prisma.UserGetPayload;
-
 interface UserRequestExpressInterface extends Request {
-	user: UserGetPayload<{ omit: { password: true } }>;
+	user: UserPrismaInterface;
 }
 
 export default UserRequestExpressInterface;

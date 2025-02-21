@@ -1,6 +1,6 @@
-import { body, ValidationChain } from 'express-validator';
+import { body } from 'express-validator';
 
-function emailFragmentValidator({ optional }: { optional: boolean }): ValidationChain[] {
+function emailFragmentValidator({ optional }: { optional: boolean }) {
 	return [
 		body('email')
 			.optional(optional)

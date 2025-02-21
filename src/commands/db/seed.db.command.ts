@@ -1,52 +1,48 @@
-import bcryptService from '@/services/bcrypt/index.js';
 import userPrismaService from '@/services/prisma/user/index.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { Command } from 'commander';
 
 import UserCreateInput = Prisma.UserCreateInput;
 
-const seedDbCommand: Command = new Command('db:seed').description('Init database').action(seed);
+const seedDbCommand = new Command('db:seed').description('Init database').action(seed);
 
-function getUsers(): UserCreateInput[] {
+async function createUser(userCreateInput: UserCreateInput): Promise<void> {
+	const user = {
+		...userCreateInput,
+		emailVerifiedAt: new Date(Date.now()),
+	};
+
+	await userPrismaService.createOrUpdateUser(user.email, { ...user });
+}
+
+function getUsers() {
 	return [
 		{
 			email: 'admin@email.com',
 			firstName: 'John',
 			lastName: 'Doe',
-			roles: ['USER', 'ADMIN'],
 			password: 'admin',
+			roles: [Role.USER, Role.ADMIN],
 		},
 		{
 			email: 'user@email.com',
 			firstName: 'Don',
 			lastName: 'Joe',
-			roles: ['USER'],
 			password: 'user',
+			roles: [Role.USER],
 		},
 	];
 }
 
-async function createUser(userCreateInput: UserCreateInput): Promise<void> {
-	const hashedPassword: string = await bcryptService.hash(userCreateInput.password);
-
-	const user = {
-		...userCreateInput,
-		password: hashedPassword,
-		emailVerifiedAt: new Date(Date.now()),
-	};
-
-	await userPrismaService.createOrUpdateUser(user.email, { ...user }, { ...user });
-}
-
 async function seed(): Promise<void> {
-	const users: UserCreateInput[] = getUsers();
+	const users = getUsers();
 
-	const seed = await until((): Promise<void[]> => Promise.all(users.map((user: UserCreateInput): Promise<void> => createUser(user))));
+	const { error } = await until(() => Promise.all(users.map((user) => createUser(user))));
 
-	if (seed.error) {
-		logger.error('Error during database seeding:', seed.error);
+	if (error) {
+		logger.error('Error during database seeding:', error);
 		return process.exit(1);
 	}
 

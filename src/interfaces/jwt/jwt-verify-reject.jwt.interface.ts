@@ -1,5 +1,5 @@
 interface JwtVerifyRejectJwtInterface {
-	(reason?: any): void;
+	(reason?: Error | string): void;
 }
 
 export default JwtVerifyRejectJwtInterface;

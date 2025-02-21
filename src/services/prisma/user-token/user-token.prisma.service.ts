@@ -1,30 +1,20 @@
-import { prisma } from '@/config/prisma.config.js';
+import { prisma } from '@/config/prisma/prisma.config.js';
+import { UserTokenPrismaInterface } from '@/interfaces/prisma/user-token/user-token.prisma.interfaces.js';
 import PrismaService from '@/services/prisma/prisma.service.js';
-import { Prisma, UserToken } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 import BatchPayload = Prisma.BatchPayload;
 import UserTokenUncheckedCreateInput = Prisma.UserTokenUncheckedCreateInput;
-import UserTokenInclude = Prisma.UserTokenInclude;
-import UserTokenGetPayload = Prisma.UserTokenGetPayload;
 import UserTokenWhereInput = Prisma.UserTokenWhereInput;
 
 class UserTokenPrismaService extends PrismaService {
-	async getUserTokenByToken(token: string, include: UserTokenInclude): Promise<UserTokenGetPayload<{ include: UserTokenInclude }> | null> {
-		return prisma.userToken.findUnique({
-			where: {
-				token,
-			},
-			include: include,
-		});
-	}
-
-	async createUserToken(userTokenCreateInput: UserTokenUncheckedCreateInput): Promise<UserToken> {
+	async createUserToken(userTokenCreateInput: UserTokenUncheckedCreateInput): Promise<UserTokenPrismaInterface> {
 		return prisma.userToken.create({
 			data: userTokenCreateInput,
 		});
 	}
 
-	async deleteUserToken(token: string): Promise<UserToken> {
+	async deleteUserToken(token: string): Promise<UserTokenPrismaInterface> {
 		return prisma.userToken.delete({
 			where: {
 				token,
@@ -35,6 +25,14 @@ class UserTokenPrismaService extends PrismaService {
 	async deleteUserTokens(where: UserTokenWhereInput): Promise<BatchPayload> {
 		return prisma.userToken.deleteMany({
 			where: where,
+		});
+	}
+
+	async getUserTokenByToken(token: string): Promise<null | UserTokenPrismaInterface> {
+		return prisma.userToken.findUnique({
+			where: {
+				token,
+			},
 		});
 	}
 }

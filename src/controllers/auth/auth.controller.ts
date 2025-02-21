@@ -9,7 +9,6 @@ import UserTokenPrismaService from '@/services/prisma/user-token/user-token.pris
 import UserPrismaService from '@/services/prisma/user/user.prisma.service.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
-import { UserToken } from '@prisma/client';
 import { Request, Response } from 'express';
 import { EventManager } from 'serverless-sqs-events';
 
@@ -25,20 +24,187 @@ class AuthController {
 		private readonly resetPasswordTokenPrismaService: ResetPasswordTokenPrismaService,
 	) {}
 
-	async register(req: Request, res: Response): Promise<Response> {
-		const { email, password, firstName, lastName } = req.body;
+	async deleteLogout(req: Request, res: Response): Promise<Response> {
+		const { refreshToken } = req.cookies;
 
-		const duplicate = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
+		const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
-		if (duplicate) {
-			logger.warning({
-				message: 'User not created. Email already in use.',
+		if (error && !this.userTokenPrismaService.recordNotExistError(error)) {
+				logger.alert({ context: { error }, message: 'Failed to delete refresh token.' });
+		}
+
+		res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
+		return res.sendStatus(204);
+	}
+
+	async getVerifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
+		const { resetPasswordToken } = req.params;
+
+		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
+		const email = decodedResetPasswordToken.resetPassword.email;
+		const tokenExists = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
+
+		if (!tokenExists) {
+			throw this.httpErrorService.tokenExpiredError();
+		}
+
+		const foundUser = await this.userPrismaService.getUserByEmail(email);
+
+		if (!foundUser) {
+			logger.error({
 				context: {
 					email,
 				},
+				message: 'User not found when verifying reset password token.',
+			});
+
+			throw this.httpErrorService.tokenInvalidError();
+		}
+
+		return res.status(200).json({ message: 'Token is valid.' });
+	}
+
+	async postLogin(req: Request, res: Response): Promise<Response> {
+		const { email, password } = req.body;
+		const { refreshToken } = req.cookies;
+
+		const user = await this.userPrismaService.getUserByEmail(email);
+
+		if (!user) {
+			logger.warning({
+				context: {
+					email,
+				},
+				message: 'Attempted login where user does not exist.',
+			});
+
+			// Bcrypt to make sure response time is consistent.
+			await this.bcryptService.compare(password, 'random');
+			throw this.httpErrorService.invalidCredentialsError();
+		}
+
+		const passwordsMatch = await user.validatePassword(password);
+
+		if (!passwordsMatch) {
+			logger.warning({
+				context: {
+					email,
+				},
+				message: 'Incorrect password.',
+			});
+
+			throw this.httpErrorService.invalidCredentialsError();
+		}
+
+		if (refreshToken) {
+			const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+
+			if (error) {
+				if (this.userTokenPrismaService.recordNotExistError(error)) {
+					logger.alert({
+						context: {
+							email,
+						},
+						message: 'Attempted refresh token reuse at login.',
+					});
+
+					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
+				} else {
+					logger.error({ context: { error }, message: 'Failed to delete refresh token.' });
+
+					throw this.httpErrorService.internalServerError();
+				}
+			}
+		}
+
+		const accessToken = this.jwtService.signAccessToken(user.id, user.email);
+		const newRefreshToken = this.jwtService.signRefreshToken(user.email);
+
+		await this.userTokenPrismaService.createUserToken({
+			token: newRefreshToken,
+			userId: user.id,
+		});
+
+		res.cookie('refreshToken', newRefreshToken, {
+			httpOnly: true,
+			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
+			sameSite: 'none',
+			secure: process.env.APP_ENV === 'prod',
+		});
+
+		return res.status(200).json({ accessToken, message: 'Login successful.' });
+	}
+
+	async postRefresh(req: Request, res: Response): Promise<Response> {
+		const { refreshToken } = req.cookies;
+
+		const userToken = await this.userTokenPrismaService.getUserTokenByToken(refreshToken);
+
+		if (!userToken) {
+			const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, false);
+			const email = decodedRefreshToken.email;
+			const foundUser = await this.userPrismaService.getUserByEmail(email);
+
+			if (foundUser) {
+				await this.userTokenPrismaService.deleteUserTokens({ userId: foundUser.id });
+
+				logger.alert({
+					context: {
+						email: foundUser.email,
+					},
+					message: 'Attempted reuse of refresh token mitigated.',
+				});
+			}
+
+			res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
+
+			throw this.httpErrorService.tokenInvalidError();
+		}
+
+		const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, true);
+
+		const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
+
+		if (error) {
+			if (!this.userTokenPrismaService.recordNotExistError(error)) {
+				logger.alert({ context: { error }, message: 'Failed to delete invalid refresh token.' });
+				res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
+
+				throw this.httpErrorService.internalServerError();
+			}
+		}
+
+		const email = decodedRefreshToken.email;
+
+		const accessToken = this.jwtService.signAccessToken(userToken.userId, email);
+		const newRefreshToken = this.jwtService.signRefreshToken(email);
+
+		await this.userTokenPrismaService.createUserToken({
+			token: newRefreshToken,
+			userId: userToken.userId,
+		});
+
+		res.cookie('refreshToken', newRefreshToken, {
+			httpOnly: true,
+			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
+			sameSite: 'none',
+			secure: process.env.APP_ENV === 'prod',
+		});
+
+		return res.status(200).json({ accessToken, message: 'Refresh successful.' });
+	}
+
+	async postRegister(req: Request, res: Response): Promise<Response> {
+		const { email, firstName, lastName, password } = req.body;
+
+		const duplicate = await this.userPrismaService.getUserByEmail(email);
+
+		if (duplicate) {
+			logger.warning({
+				context: {
+					email,
+				},
+				message: 'User not created. Email already in use.',
 			});
 
 			throw this.httpErrorService.emailAlreadyInUseError();
@@ -48,9 +214,9 @@ class AuthController {
 
 		const createdUser = await this.userPrismaService.createUser({
 			email,
-			password: hashedPassword,
 			firstName,
 			lastName,
+			password: hashedPassword,
 		});
 
 		const verifyToken = this.jwtService.signVerifyEmailToken(createdUser.email);
@@ -60,67 +226,15 @@ class AuthController {
 		await this.eventManager.send('sendEmail', emailOptions);
 
 		return res.status(201).json({
-			message: 'User successfully created.',
 			email: createdUser.email,
+			message: 'User successfully created.',
 		});
 	}
 
-	async verifyEmail(req: Request, res: Response): Promise<Response> {
-		const { verifyEmailToken } = req.params;
-
-		const decodedVerifyEmailToken = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
-
-		if (decodedVerifyEmailToken.alreadyVerified) {
-			return res.status(200).json({ message: 'Email already verified.' });
-		}
-
-		const email = decodedVerifyEmailToken.verifyEmail.email;
-
-		const foundUser = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
-
-		if (!foundUser) {
-			logger.alert({
-				message: 'User not found when verifying email.',
-				context: {
-					email,
-					verifyEmailToken,
-				},
-			});
-
-			throw this.httpErrorService.tokenInvalidError();
-		}
-
-		if (foundUser.emailVerifiedAt) {
-			logger.warning({
-				message: 'Email already verified.',
-				context: {
-					email,
-				},
-			});
-
-			return res.status(200).json({ message: 'Email already verified.' });
-		}
-
-		await this.userPrismaService.updateUser(
-			{ email: foundUser.email },
-			{
-				emailVerifiedAt: new Date(Date.now()),
-			},
-		);
-
-		return res.status(200).json({ message: 'Email successfully verified.' });
-	}
-
-	async resendVerifyEmail(req: Request, res: Response): Promise<Response> {
+	async postResendVerifyEmail(req: Request, res: Response): Promise<Response> {
 		const { email } = req.body;
 
-		const user = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
+		const user = await this.userPrismaService.getUserByEmail(email);
 
 		if (!user) {
 			return res.status(200).json({ message: 'Email successfully sent.' });
@@ -139,195 +253,7 @@ class AuthController {
 		return res.status(200).json({ message: 'Email successfully sent.' });
 	}
 
-	async login(req: Request, res: Response): Promise<Response> {
-		const { email, password } = req.body;
-		const { refreshToken } = req.cookies;
-
-		const user = await this.userPrismaService.getUserByEmail(email);
-
-		if (!user) {
-			logger.warning({
-				message: 'Attempted login where user does not exist.',
-				context: {
-					email,
-				},
-			});
-
-			// Bcrypt to make sure response time is consistent.
-			await this.bcryptService.compare(password, 'random');
-			throw this.httpErrorService.invalidCredentialsError();
-		}
-
-		const passwordsMatch: boolean = await this.bcryptService.compare(password, user.password);
-
-		if (!passwordsMatch) {
-			logger.warning({
-				message: 'Incorrect password.',
-				context: {
-					email,
-				},
-			});
-
-			throw this.httpErrorService.invalidCredentialsError();
-		}
-
-		if (refreshToken) {
-			const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
-
-			if (deleteRefreshToken.error) {
-				if (this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
-					logger.alert({
-						message: 'Attempted refresh token reuse at login.',
-						context: {
-							email,
-						},
-					});
-
-					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
-				} else {
-					logger.error({ message: 'Failed to delete refresh token.', context: { error: deleteRefreshToken.error } });
-
-					throw this.httpErrorService.internalServerError();
-				}
-			}
-		}
-
-		const accessToken = this.jwtService.signAccessToken(user.id, user.email);
-		const newRefreshToken = this.jwtService.signRefreshToken(user.email);
-
-		await this.userTokenPrismaService.createUserToken({
-			token: newRefreshToken,
-			userId: user.id,
-		});
-
-		res.cookie('refreshToken', newRefreshToken, {
-			httpOnly: true,
-			secure: process.env.APP_ENV === 'prod',
-			sameSite: 'none',
-			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-		});
-
-		return res.status(200).json({ message: 'Login successful.', accessToken });
-	}
-
-	async refresh(req: Request, res: Response): Promise<Response> {
-		const { refreshToken } = req.cookies;
-
-		const userToken = await this.userTokenPrismaService.getUserTokenByToken(refreshToken, {
-			user: true,
-		});
-
-		if (!userToken) {
-			const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, false);
-			const email = decodedRefreshToken.email;
-			const foundUser = await this.userPrismaService.getUserByEmail(email, {
-				password: true,
-				roles: true,
-			});
-
-			if (foundUser) {
-				await this.userTokenPrismaService.deleteUserTokens({ userId: foundUser.id });
-
-				logger.alert({
-					message: 'Attempted reuse of refresh token mitigated.',
-					context: {
-						email: foundUser.email,
-					},
-				});
-			}
-
-			res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
-
-			throw this.httpErrorService.tokenInvalidError();
-		}
-
-		const decodedRefreshToken = await this.jwtService.verifyRefreshToken(refreshToken, true);
-
-		const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
-
-		if (deleteRefreshToken.error) {
-			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
-				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: deleteRefreshToken.error } });
-				res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
-
-				throw this.httpErrorService.internalServerError();
-			}
-		}
-
-		const email = decodedRefreshToken.email;
-
-		const accessToken = this.jwtService.signAccessToken(userToken.userId, email);
-		const newRefreshToken = this.jwtService.signRefreshToken(email);
-
-		await this.userTokenPrismaService.createUserToken({
-			userId: userToken.userId,
-			token: newRefreshToken,
-		});
-
-		res.cookie('refreshToken', newRefreshToken, {
-			httpOnly: true,
-			secure: process.env.APP_ENV === 'prod',
-			sameSite: 'none',
-			maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-		});
-
-		return res.status(200).json({ message: 'Refresh successful.', accessToken });
-	}
-
-	async sendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
-		const { email } = req.body;
-
-		const user = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
-
-		if (!user) {
-			return res.status(200).json({ message: 'Email successfully sent.' });
-		}
-
-		const resetPasswordToken: string = this.jwtService.signResetPasswordToken(user.email);
-
-		await this.resetPasswordTokenPrismaService.createOrUpdateResetPasswordToken(resetPasswordToken, user.id);
-
-		const emailOptions = await this.mailerService.getResetPasswordEmailOptions(user, resetPasswordToken);
-
-		await this.eventManager.send('sendEmail', emailOptions);
-
-		return res.status(200).json({ message: 'Email successfully sent.' });
-	}
-
-	async verifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
-		const { resetPasswordToken } = req.params;
-
-		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
-		const email = decodedResetPasswordToken.resetPassword.email;
-		const tokenExists = await this.resetPasswordTokenPrismaService.getResetPasswordToken(resetPasswordToken);
-
-		if (!tokenExists) {
-			throw this.httpErrorService.tokenExpiredError();
-		}
-
-		const foundUser = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
-
-		if (!foundUser) {
-			logger.error({
-				message: 'User not found when verifying reset password token.',
-				context: {
-					email,
-				},
-			});
-
-			throw this.httpErrorService.tokenInvalidError();
-		}
-
-		return res.status(200).json({ message: 'Token is valid.' });
-	}
-
-	async resetPassword(req: Request, res: Response): Promise<Response> {
+	async postResetPassword(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
 		const { newPassword } = req.body;
 
@@ -339,17 +265,14 @@ class AuthController {
 			throw this.httpErrorService.tokenExpiredError();
 		}
 
-		const foundUser = await this.userPrismaService.getUserByEmail(email, {
-			password: true,
-			roles: true,
-		});
+		const foundUser = await this.userPrismaService.getUserByEmail(email);
 
 		if (!foundUser) {
 			logger.error({
-				message: 'User not found when resetting password.',
 				context: {
 					email,
 				},
+				message: 'User not found when resetting password.',
 			});
 
 			throw this.httpErrorService.tokenInvalidError();
@@ -369,22 +292,70 @@ class AuthController {
 		return res.status(200).json({ message: 'Password successfully updated.' });
 	}
 
-	async logout(req: Request, res: Response): Promise<Response> {
-		const { refreshToken } = req.cookies;
+	async postSendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
+		const { email } = req.body;
 
-		const deleteRefreshToken = await until((): Promise<UserToken> => this.userTokenPrismaService.deleteUserToken(refreshToken));
+		const user = await this.userPrismaService.getUserByEmail(email);
 
-		if (deleteRefreshToken.error) {
-			if (!this.userTokenPrismaService.recordNotExistError(deleteRefreshToken.error)) {
-				logger.alert({ message: 'Failed to delete invalid refresh token.', context: { error: deleteRefreshToken.error } });
-				res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
-
-				return res.sendStatus(204);
-			}
+		if (!user) {
+			return res.status(200).json({ message: 'Email successfully sent.' });
 		}
 
-		res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'none' });
-		return res.sendStatus(204);
+		const resetPasswordToken = this.jwtService.signResetPasswordToken(user.email);
+
+		await this.resetPasswordTokenPrismaService.createOrUpdateResetPasswordToken(resetPasswordToken, user.id);
+
+		const emailOptions = await this.mailerService.getResetPasswordEmailOptions(user, resetPasswordToken);
+
+		await this.eventManager.send('sendEmail', emailOptions);
+
+		return res.status(200).json({ message: 'Email successfully sent.' });
+	}
+
+	async postVerifyEmail(req: Request, res: Response): Promise<Response> {
+		const { verifyEmailToken } = req.params;
+
+		const decodedVerifyEmailToken = await this.jwtService.verifyVerifyEmailToken(verifyEmailToken);
+
+		if (decodedVerifyEmailToken.alreadyVerified) {
+			return res.status(200).json({ message: 'Email already verified.' });
+		}
+
+		const email = decodedVerifyEmailToken.verifyEmail.email;
+
+		const foundUser = await this.userPrismaService.getUserByEmail(email);
+
+		if (!foundUser) {
+			logger.alert({
+				context: {
+					email,
+					verifyEmailToken,
+				},
+				message: 'User not found when verifying email.',
+			});
+
+			throw this.httpErrorService.tokenInvalidError();
+		}
+
+		if (foundUser.emailVerifiedAt) {
+			logger.warning({
+				context: {
+					email,
+				},
+				message: 'Email already verified.',
+			});
+
+			return res.status(200).json({ message: 'Email already verified.' });
+		}
+
+		await this.userPrismaService.updateUser(
+			{ email: foundUser.email },
+			{
+				emailVerifiedAt: new Date(Date.now()),
+			},
+		);
+
+		return res.status(200).json({ message: 'Email successfully verified.' });
 	}
 }
 

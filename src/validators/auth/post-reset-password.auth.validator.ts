@@ -1,7 +1,6 @@
 import emailFragmentValidator from '@/validators/fragments/email.fragment.validator.js';
-import { ValidationChain } from 'express-validator';
 
-function postResetPasswordAuthValidator(): ValidationChain[] {
+function postResetPasswordAuthValidator() {
 	return [...emailFragmentValidator({ optional: false })];
 }
 
