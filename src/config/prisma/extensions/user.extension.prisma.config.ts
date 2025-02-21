@@ -27,7 +27,6 @@ export const user = Prisma.defineExtension({
 				compute:
 					(user: { password: string }): ((rawPassword: string) => Promise<boolean>) =>
 					async (rawPassword: string): Promise<boolean> => {
-						console.log(rawPassword);
 						const hash = user.password;
 
 						if (!hash) {

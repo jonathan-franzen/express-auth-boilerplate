@@ -85,8 +85,6 @@ class AuthController {
 
 		const passwordsMatch = await user.validatePassword(password);
 
-		console.log(passwordsMatch);
-
 		if (!passwordsMatch) {
 			logger.warning({
 				context: {
