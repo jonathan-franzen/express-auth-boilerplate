@@ -1,13 +1,13 @@
 import userController from '@/controllers/user/index.js';
-import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import { UserRequestExpressInterface } from '@/interfaces/express/express.interfaces.js';
 import expressValidatorMiddleware from '@/middlewares/express-validator.middleware.js';
 import verifyRolesMiddleware from '@/middlewares/verify-roles.middleware.js';
-import deleteIdUserValidator from '@/validators/user/delete-id.user.validator.js';
-import getIdUserValidator from '@/validators/user/get-id.user.validator.js';
-import getUserValidator from '@/validators/user/get.user.validator.js';
-import patchIdUserValidator from '@/validators/user/patch-id.user.validator.js';
-import patchMeUserValidator from '@/validators/user/patch-me.user.validator.js';
-import postMeResetPasswordUserValidator from '@/validators/user/post-me-reset-password.user.validator.js';
+import deleteUserValidator from '@/validators/user/delete-user.validator.js';
+import getUserValidator from '@/validators/user/get-user.validator.js';
+import getUsersValidator from '@/validators/user/get-users.validator.js';
+import patchMeValidator from '@/validators/user/patch-me.validator.js';
+import patchUserValidator from '@/validators/user/patch-user.validator.js';
+import postMeResetPasswordValidator from '@/validators/user/post-me-reset-password.validator.js';
 import { Role } from '@prisma/client';
 import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
@@ -23,7 +23,7 @@ userRouter.get(
 
 userRouter.patch(
 	'/me',
-	expressValidatorMiddleware(patchMeUserValidator()),
+	expressValidatorMiddleware(patchMeValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.patchMe(req as UserRequestExpressInterface, res);
 	}),
@@ -31,7 +31,7 @@ userRouter.patch(
 
 userRouter.post(
 	'/me/reset-password',
-	expressValidatorMiddleware(postMeResetPasswordUserValidator()),
+	expressValidatorMiddleware(postMeResetPasswordValidator()),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.postMeResetPassword(req as UserRequestExpressInterface, res);
 	}),
@@ -39,7 +39,7 @@ userRouter.post(
 
 userRouter.get(
 	'/',
-	expressValidatorMiddleware(getUserValidator()),
+	expressValidatorMiddleware(getUsersValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getUsers(req, res);
@@ -48,7 +48,7 @@ userRouter.get(
 
 userRouter.get(
 	'/:id',
-	expressValidatorMiddleware(getIdUserValidator()),
+	expressValidatorMiddleware(getUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.getUser(req, res);
@@ -57,7 +57,7 @@ userRouter.get(
 
 userRouter.patch(
 	'/:id',
-	expressValidatorMiddleware(patchIdUserValidator()),
+	expressValidatorMiddleware(patchUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.patchUser(req, res);
@@ -66,7 +66,7 @@ userRouter.patch(
 
 userRouter.delete(
 	'/:id',
-	expressValidatorMiddleware(deleteIdUserValidator()),
+	expressValidatorMiddleware(deleteUserValidator()),
 	verifyRolesMiddleware(Role.ADMIN),
 	asyncHandler(async (req: Request, res: Response): Promise<void> => {
 		await userController.deleteUser(req as UserRequestExpressInterface, res);

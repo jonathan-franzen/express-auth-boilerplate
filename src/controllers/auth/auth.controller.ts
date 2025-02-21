@@ -1,5 +1,5 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import EventsInterface from '@/interfaces/events/events.interface.js';
+import { EventsInterface } from '@/interfaces/events/events.interfaces.js';
 import BcryptService from '@/services/bcrypt/bcrypt.service.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
 import JwtService from '@/services/jwt/jwt.service.js';
@@ -37,7 +37,7 @@ class AuthController {
 		return res.sendStatus(204);
 	}
 
-	async getVerifyResetPasswordToken(req: Request, res: Response): Promise<Response> {
+	async getResetPasswordTokenValid(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
 
 		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);

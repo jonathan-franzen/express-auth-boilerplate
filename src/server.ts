@@ -48,7 +48,7 @@ app.use(router);
 app.use(errorHandlerMiddleware);
 
 if (!AWS_LAMBDA_FUNCTION_NAME) {
-	app.listen(PORT, (): void => {
+	app.listen(PORT, () => {
 		logger.info(`App listening on port ${PORT}`);
 	});
 }

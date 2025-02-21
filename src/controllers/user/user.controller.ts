@@ -1,5 +1,5 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
-import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import { UserRequestExpressInterface } from '@/interfaces/express/express.interfaces.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
 import JwtService from '@/services/jwt/jwt.service.js';
 import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';

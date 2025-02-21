@@ -1,4 +1,4 @@
-import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
+import { UserRequestExpressInterface } from '@/interfaces/express/express.interfaces.js';
 import { Role } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 

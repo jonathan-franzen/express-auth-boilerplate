@@ -1,5 +1,5 @@
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js';
-import SendEmailOptionsMailerInterface from '@/interfaces/mailer/send-email-options.mailer.interface.js';
+import { SendEmailOptionsMailerInterface } from '@/interfaces/mailer/mailer.interfaces.js';
 import { UserPrismaInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
 import { Prisma } from '@prisma/client';
 import { Transporter } from 'nodemailer';
