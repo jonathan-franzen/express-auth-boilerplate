@@ -1,6 +1,5 @@
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js';
 import UserRequestExpressInterface from '@/interfaces/express/user-request.express.interface.js';
-import BcryptService from '@/services/bcrypt/bcrypt.service.js';
 import HttpErrorService from '@/services/http-error/http-error.service.js';
 import JwtService from '@/services/jwt/jwt.service.js';
 import UserTokenPrismaService from '@/services/prisma/user-token/user-token.prisma.service.js';
@@ -13,7 +12,6 @@ class UserController {
 	constructor(
 		private readonly userPrismaService: UserPrismaService,
 		private readonly userTokenPrismaService: UserTokenPrismaService,
-		private readonly bcryptService: BcryptService,
 		private readonly jwtService: JwtService,
 		private readonly httpErrorService: HttpErrorService,
 	) {}
@@ -151,14 +149,12 @@ class UserController {
 			throw this.httpErrorService.invalidCredentialsError();
 		}
 
-		const hashedNewPassword = await this.bcryptService.hash(newPassword);
-
 		await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
 
 		await this.userPrismaService.updateUser(
 			{ email: user.email },
 			{
-				password: hashedNewPassword,
+				password: newPassword,
 			},
 		);
 

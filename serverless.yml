@@ -40,7 +40,7 @@ provider:
     MAILER_FROM: '"Example Team" <info@example.com>'
     AWS_REGION: eu-north-1
     WORKQUEUE_URL: http://localhost:9324/000000000000/workqueue
-		# PATH: Only if serverless-offline can't find your local Node installment
+  # PATH: Only if serverless-offline can't find your local Node installment
 
   iamRoleStatements:
     - Effect: Allow

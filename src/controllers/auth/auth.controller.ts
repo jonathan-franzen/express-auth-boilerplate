@@ -30,7 +30,7 @@ class AuthController {
 		const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
 		if (error && !this.userTokenPrismaService.recordNotExistError(error)) {
-				logger.alert({ context: { error }, message: 'Failed to delete refresh token.' });
+			logger.alert({ context: { error }, message: 'Failed to delete refresh token.' });
 		}
 
 		res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
@@ -84,6 +84,8 @@ class AuthController {
 		}
 
 		const passwordsMatch = await user.validatePassword(password);
+
+		console.log(passwordsMatch);
 
 		if (!passwordsMatch) {
 			logger.warning({
@@ -210,13 +212,11 @@ class AuthController {
 			throw this.httpErrorService.emailAlreadyInUseError();
 		}
 
-		const hashedPassword = await this.bcryptService.hash(password);
-
 		const createdUser = await this.userPrismaService.createUser({
 			email,
 			firstName,
 			lastName,
-			password: hashedPassword,
+			password,
 		});
 
 		const verifyToken = this.jwtService.signVerifyEmailToken(createdUser.email);
@@ -278,12 +278,10 @@ class AuthController {
 			throw this.httpErrorService.tokenInvalidError();
 		}
 
-		const hashedPassword = await this.bcryptService.hash(newPassword);
-
 		await this.userPrismaService.updateUser(
 			{ email },
 			{
-				password: hashedPassword,
+				password: newPassword,
 			},
 		);
 
