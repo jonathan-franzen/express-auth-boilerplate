@@ -26,7 +26,7 @@ async function deleteExpiredTokens(): Promise<void> {
 
 	if (deleteResetPasswordTokens.error || deleteRefreshTokens.error) {
 		logger.error('Error deleting expired tokens:', deleteResetPasswordTokens.error || deleteRefreshTokens.error);
-		process.exit(1);
+		throw new Error('Error deleting expired tokens.');
 	}
 
 	logger.info('Tokens deleted successfully.');

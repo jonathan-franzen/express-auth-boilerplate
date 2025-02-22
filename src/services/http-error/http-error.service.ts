@@ -5,6 +5,10 @@ class HttpErrorService {
 		return createError(409, 'Email already in use.');
 	}
 
+	incorrectPasswordError(): HttpError<401> {
+		return createError(401, 'Incorrect password.');
+	}
+
 	internalServerError(): HttpError<500> {
 		return createError(500, 'Internal server error.');
 	}

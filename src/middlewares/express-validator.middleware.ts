@@ -16,18 +16,18 @@ function expressValidatorMiddleware(validators: ValidationChain[]): RequestHandl
 			return next();
 		}
 
-		const firstError = errors.array().at(0)!;
+		const firstError = errors.array().at(0)!.msg as { message: string; status: number };
 
 		logger.warning({
 			context: {
-				error: firstError?.msg.message,
+				error: firstError.message,
 				params: JSON.stringify(req.params),
 				queryParams: JSON.stringify(req.query),
 				url: req.baseUrl + req.url,
 			},
 			message: 'Request did not pass validation.',
 		});
-		res.status(firstError.msg.status).json({ error: firstError.msg.message });
+		res.status(firstError.status).json({ error: firstError.message });
 	};
 }
 

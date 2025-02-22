@@ -1,7 +1,7 @@
 import { APP_ENV } from '@/constants/environment.constants.js';
-import { AsyncLocalStorage } from 'async_hooks';
 import { TransformableInfo } from 'logform';
-import * as os from 'os';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import * as os from 'node:os';
 import winston, { createLogger, format, transports } from 'winston';
 
 const { printf, timestamp } = format;

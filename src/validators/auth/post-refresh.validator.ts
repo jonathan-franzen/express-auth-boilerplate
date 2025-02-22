@@ -1,6 +1,7 @@
-import refreshTokenValidator from '@/validators/fragments/refreshToken.validator.js';
+import refreshTokenValidator from '@/validators/fragments/refresh-token.validator.js';
+import { ValidationChain } from 'express-validator';
 
-function postRefreshValidator() {
+function postRefreshValidator(): ValidationChain[] {
 	return [...refreshTokenValidator()];
 }
 

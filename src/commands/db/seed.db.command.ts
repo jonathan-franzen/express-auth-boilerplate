@@ -1,3 +1,4 @@
+import { UserPrismaInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
 import userPrismaService from '@/services/prisma/user/index.js';
 import logger from '@/utils/logger.js';
 import { until } from '@open-draft/until';
@@ -17,7 +18,7 @@ async function createUser(userCreateInput: UserCreateInput): Promise<void> {
 	await userPrismaService.createOrUpdateUser(user.email, { ...user });
 }
 
-function getUsers() {
+function getUsers(): (Omit<UserPrismaInterface, 'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt' | 'validatePassword'> & { password: string })[] {
 	return [
 		{
 			email: 'admin@email.com',
@@ -43,7 +44,7 @@ async function seed(): Promise<void> {
 
 	if (error) {
 		logger.error('Error during database seeding:', error);
-		return process.exit(1);
+		throw new Error('Error during database seeding.');
 	}
 
 	logger.info('Seeding completed successfully.');

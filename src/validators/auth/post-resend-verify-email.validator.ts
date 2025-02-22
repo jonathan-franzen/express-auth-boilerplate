@@ -1,6 +1,7 @@
 import emailValidator from '@/validators/fragments/email.validator.js';
+import { ValidationChain } from 'express-validator';
 
-function postResendVerifyEmailValidator() {
+function postResendVerifyEmailValidator(): ValidationChain[] {
 	return [...emailValidator({ optional: false })];
 }
 

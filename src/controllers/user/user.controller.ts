@@ -38,7 +38,7 @@ class UserController {
 		return res.sendStatus(204);
 	}
 
-	async getMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
+	getMe(req: UserRequestExpressInterface, res: Response): Response {
 		return res.status(200).json({ me: req.user, message: 'Success.' });
 	}
 
@@ -62,9 +62,9 @@ class UserController {
 	}
 
 	async getUsers(req: Request, res: Response): Promise<Response> {
-		const page = req.query.page ? parseInt(req.query.page as string) : undefined;
-		const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-		const filters = req.query.filters ? JSON.parse(req.query.filters as string) : {};
+		const page = req.query.page ? Number(req.query.page as string) : undefined;
+		const limit = req.query.limit ? Number(req.query.limit as string) : undefined;
+		const filters = req.query.filters ? (JSON.parse(req.query.filters as string) as Record<string, string>) : {};
 		const sortBy = (req.query.sortBy as string) || 'createdAt';
 		const sortOrder = req.query.sortOrder === 'asc' || req.query.sortOrder === 'desc' ? req.query.sortOrder : 'asc';
 
@@ -89,10 +89,10 @@ class UserController {
 	}
 
 	async patchMe(req: UserRequestExpressInterface, res: Response): Promise<Response> {
-		const { ...userUpdateInput } = req.body;
+		const userUpdateInput = req.body as Record<string, string>;
 
-		if (req.body.email && req.body.email !== req.user.email) {
-			const duplicate = await this.userPrismaService.getUserByEmail(req.body.email);
+		if (userUpdateInput.email && userUpdateInput.email !== req.user.email) {
+			const duplicate = await this.userPrismaService.getUserByEmail(userUpdateInput.email);
 
 			if (duplicate) {
 				throw this.httpErrorService.emailAlreadyInUseError();
@@ -105,10 +105,10 @@ class UserController {
 
 	async patchUser(req: Request, res: Response): Promise<Response> {
 		const { id } = req.params;
-		const { ...userUpdateInput } = req.body;
+		const userUpdateInput = req.body as Record<string, string>;
 
-		if (req.body.email) {
-			const potentialDuplicate = await this.userPrismaService.getUserByEmail(req.body.email);
+		if (userUpdateInput.email) {
+			const potentialDuplicate = await this.userPrismaService.getUserByEmail(userUpdateInput.email);
 
 			if (potentialDuplicate?.id && potentialDuplicate?.id !== id) {
 				throw this.httpErrorService.emailAlreadyInUseError();
@@ -119,8 +119,8 @@ class UserController {
 		return res.status(200).json({ message: 'Success.', user });
 	}
 
-	async postMeResetPassword(req: UserRequestExpressInterface, res: Response): Promise<Response> {
-		const { newPassword, password } = req.body;
+	async postMeUpdatePassword(req: UserRequestExpressInterface, res: Response): Promise<Response> {
+		const { newPassword, password } = req.body as Record<string, string>;
 
 		// We need to fetch user again, since we need the password which is not provided by middleware passport.
 		const user = await this.userPrismaService.getUserById(req.user.id);
@@ -146,7 +146,7 @@ class UserController {
 				message: 'Incorrect password.',
 			});
 
-			throw this.httpErrorService.invalidCredentialsError();
+			throw this.httpErrorService.incorrectPasswordError();
 		}
 
 		await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });

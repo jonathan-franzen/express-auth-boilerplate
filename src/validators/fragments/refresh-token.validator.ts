@@ -1,6 +1,6 @@
-import { cookie } from 'express-validator';
+import { cookie, ValidationChain } from 'express-validator';
 
-function refreshTokenValidator() {
+function refreshTokenValidator(): ValidationChain[] {
 	return [cookie('refreshToken').exists().withMessage({ message: 'Refresh token is required.', status: 400 })];
 }
 

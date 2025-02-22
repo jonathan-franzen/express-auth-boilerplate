@@ -1,3 +1,1 @@
-import { serverlessConsole } from 'serverless-console';
-
-export const handler = serverlessConsole;
+export { serverlessConsole as handler } from 'serverless-console';

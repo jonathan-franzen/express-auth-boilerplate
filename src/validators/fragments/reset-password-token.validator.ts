@@ -1,6 +1,6 @@
-import { param } from 'express-validator';
+import { param, ValidationChain } from 'express-validator';
 
-function resetPasswordTokenValidator() {
+function resetPasswordTokenValidator(): ValidationChain[] {
 	return [
 		param('resetPasswordToken')
 			.exists()

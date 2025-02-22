@@ -25,7 +25,7 @@ class AuthController {
 	) {}
 
 	async deleteLogout(req: Request, res: Response): Promise<Response> {
-		const { refreshToken } = req.cookies;
+		const { refreshToken } = req.cookies as Record<string, string>;
 
 		const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
@@ -65,8 +65,8 @@ class AuthController {
 	}
 
 	async postLogin(req: Request, res: Response): Promise<Response> {
-		const { email, password } = req.body;
-		const { refreshToken } = req.cookies;
+		const { email, password } = req.body as Record<string, string>;
+		const { refreshToken } = req.cookies as Record<string, string>;
 
 		const user = await this.userPrismaService.getUserByEmail(email);
 
@@ -136,7 +136,7 @@ class AuthController {
 	}
 
 	async postRefresh(req: Request, res: Response): Promise<Response> {
-		const { refreshToken } = req.cookies;
+		const { refreshToken } = req.cookies as Record<string, string>;
 
 		const userToken = await this.userTokenPrismaService.getUserTokenByToken(refreshToken);
 
@@ -165,13 +165,11 @@ class AuthController {
 
 		const { error } = await until(() => this.userTokenPrismaService.deleteUserToken(refreshToken));
 
-		if (error) {
-			if (!this.userTokenPrismaService.recordNotExistError(error)) {
-				logger.alert({ context: { error }, message: 'Failed to delete invalid refresh token.' });
-				res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
+		if (error && !this.userTokenPrismaService.recordNotExistError(error)) {
+			logger.alert({ context: { error }, message: 'Failed to delete invalid refresh token.' });
+			res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'none', secure: false });
 
-				throw this.httpErrorService.internalServerError();
-			}
+			throw this.httpErrorService.internalServerError();
 		}
 
 		const email = decodedRefreshToken.email;
@@ -195,7 +193,7 @@ class AuthController {
 	}
 
 	async postRegister(req: Request, res: Response): Promise<Response> {
-		const { email, firstName, lastName, password } = req.body;
+		const { email, firstName, lastName, password } = req.body as Record<string, string>;
 
 		const duplicate = await this.userPrismaService.getUserByEmail(email);
 
@@ -219,7 +217,7 @@ class AuthController {
 
 		const verifyToken = this.jwtService.signVerifyEmailToken(createdUser.email);
 
-		const emailOptions = await this.mailerService.getVerifyEmailOptions(createdUser, verifyToken);
+		const emailOptions = this.mailerService.getVerifyEmailOptions(createdUser, verifyToken);
 
 		await this.eventManager.send('sendEmail', emailOptions);
 
@@ -230,7 +228,7 @@ class AuthController {
 	}
 
 	async postResendVerifyEmail(req: Request, res: Response): Promise<Response> {
-		const { email } = req.body;
+		const { email } = req.body as Record<string, string>;
 
 		const user = await this.userPrismaService.getUserByEmail(email);
 
@@ -244,7 +242,7 @@ class AuthController {
 
 		const verifyToken = this.jwtService.signVerifyEmailToken(user.email);
 
-		const emailOptions = await this.mailerService.getVerifyEmailOptions(user, verifyToken);
+		const emailOptions = this.mailerService.getVerifyEmailOptions(user, verifyToken);
 
 		await this.eventManager.send('sendEmail', emailOptions);
 
@@ -253,7 +251,7 @@ class AuthController {
 
 	async postResetPassword(req: Request, res: Response): Promise<Response> {
 		const { resetPasswordToken } = req.params;
-		const { newPassword } = req.body;
+		const { newPassword } = req.body as Record<string, string>;
 
 		const decodedResetPasswordToken = await this.jwtService.verifyResetPasswordToken(resetPasswordToken);
 		const email = decodedResetPasswordToken.resetPassword.email;
@@ -289,7 +287,7 @@ class AuthController {
 	}
 
 	async postSendResetPasswordEmail(req: Request, res: Response): Promise<Response> {
-		const { email } = req.body;
+		const { email } = req.body as Record<string, string>;
 
 		const user = await this.userPrismaService.getUserByEmail(email);
 
@@ -301,7 +299,7 @@ class AuthController {
 
 		await this.resetPasswordTokenPrismaService.createOrUpdateResetPasswordToken(resetPasswordToken, user.id);
 
-		const emailOptions = await this.mailerService.getResetPasswordEmailOptions(user, resetPasswordToken);
+		const emailOptions = this.mailerService.getResetPasswordEmailOptions(user, resetPasswordToken);
 
 		await this.eventManager.send('sendEmail', emailOptions);
 

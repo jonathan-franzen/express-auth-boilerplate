@@ -1,6 +1,6 @@
-import { body } from 'express-validator';
+import { body, ValidationChain } from 'express-validator';
 
-function passwordValidator({ includeStrongCheck, key }: { includeStrongCheck: boolean; key?: string }) {
+function passwordValidator({ includeStrongCheck, key }: { includeStrongCheck: boolean; key?: string }): ValidationChain[] {
 	return [
 		body(key || 'password')
 			.exists()

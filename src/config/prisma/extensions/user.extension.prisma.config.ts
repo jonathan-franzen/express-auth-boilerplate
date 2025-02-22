@@ -9,7 +9,7 @@ export const user = Prisma.defineExtension({
 		user: {
 			async create({ args, query }): Promise<PayloadToResult<$UserPayload>> {
 				if (args.data.password) {
-					args.data.password = await bcryptService.hash(args.data.password as string);
+					args.data.password = await bcryptService.hash(args.data.password);
 				}
 				return query(args);
 			},

@@ -5,6 +5,8 @@ export const commander = new Command();
 
 commander.name('Node Commander').description('Command Console for Node.');
 
-dbCommands.forEach((cmd: Command): Command => commander.addCommand(cmd));
+for (const cmd of dbCommands) {
+	commander.addCommand(cmd);
+}
 
 commander.parse(process.argv);

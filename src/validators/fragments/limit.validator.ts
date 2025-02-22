@@ -1,6 +1,6 @@
-import { query } from 'express-validator';
+import { query, ValidationChain } from 'express-validator';
 
-function limitValidator() {
+function limitValidator(): ValidationChain[] {
 	return [query('limit').optional().isNumeric().withMessage({ message: 'Limit must be numerical.', status: 400 })];
 }
 

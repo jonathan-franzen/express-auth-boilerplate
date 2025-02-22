@@ -1,6 +1,7 @@
 import emailValidator from '@/validators/fragments/email.validator.js';
+import { ValidationChain } from 'express-validator';
 
-function postSendResetPasswordEmailValidator() {
+function postSendResetPasswordEmailValidator(): ValidationChain[] {
 	return [...emailValidator({ optional: false })];
 }
 
