@@ -1,5 +1,5 @@
 import { prisma } from '@/config/prisma/prisma.config.js';
-import { getUsersPrismaInterface, UserPrismaInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
+import { getUsersPrismaInterface, UserPrismaInterface, UserPrismaWithFunctionsInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
 import PrismaService from '@/services/prisma/prisma.service.js';
 import { Prisma } from '@prisma/client';
 
@@ -11,6 +11,7 @@ class UserPrismaService extends PrismaService {
 	async createOrUpdateUser(email: string, userCreateUpdateInput: UserCreateInput): Promise<UserPrismaInterface> {
 		return prisma.user.upsert({
 			create: userCreateUpdateInput,
+			omit: { validatePassword: true },
 			update: userCreateUpdateInput,
 			where: { email },
 		});
@@ -19,29 +20,41 @@ class UserPrismaService extends PrismaService {
 	async createUser(userCreateInput: UserCreateInput): Promise<UserPrismaInterface> {
 		return prisma.user.create({
 			data: userCreateInput,
+			omit: { validatePassword: true },
 		});
 	}
 
 	async deleteUser(id: string): Promise<UserPrismaInterface> {
 		return prisma.user.delete({
+			omit: { validatePassword: true },
 			where: {
 				id,
 			},
 		});
 	}
 
-	async getUserByEmail(email: string): Promise<null | UserPrismaInterface> {
-		return prisma.user.findUnique({
+	async getUserByEmail<T extends boolean>(
+		email: string,
+		includeFunctions: T = false as T,
+	): Promise<null | (T extends true ? UserPrismaWithFunctionsInterface : UserPrismaInterface)> {
+		const user = await prisma.user.findUnique({
 			where: { email },
+			...(includeFunctions ? {} : { omit: { validatePassword: true } }),
 		});
+
+		return user as null | (T extends true ? UserPrismaWithFunctionsInterface : UserPrismaInterface);
 	}
 
-	async getUserById(id: string): Promise<null | UserPrismaInterface> {
-		return prisma.user.findUnique({
-			where: {
-				id,
-			},
+	async getUserById<T extends boolean>(
+		id: string,
+		includeFunctions: T = false as T,
+	): Promise<null | (T extends true ? UserPrismaWithFunctionsInterface : UserPrismaInterface)> {
+		const user = await prisma.user.findUnique({
+			where: { id },
+			...(includeFunctions ? {} : { omit: { validatePassword: true } }),
 		});
+
+		return user as null | (T extends true ? UserPrismaWithFunctionsInterface : UserPrismaInterface);
 	}
 
 	async getUsers(query: getUsersPrismaInterface): Promise<null | UserPrismaInterface[]> {
@@ -50,6 +63,7 @@ class UserPrismaService extends PrismaService {
 		const skip = (page - 1) * limit;
 
 		return prisma.user.findMany({
+			omit: { validatePassword: true },
 			orderBy: {
 				[sortBy]: sortOrder,
 			},
@@ -68,6 +82,7 @@ class UserPrismaService extends PrismaService {
 	async updateUser(where: UserWhereUniqueInput, data: UserUpdateInput): Promise<UserPrismaInterface> {
 		return prisma.user.update({
 			data: data,
+			omit: { validatePassword: true },
 			where: where,
 		});
 	}

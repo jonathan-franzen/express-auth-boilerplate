@@ -39,7 +39,8 @@ class UserController {
 	}
 
 	getMe(req: UserRequestExpressInterface, res: Response): Response {
-		return res.status(200).json({ me: req.user, message: 'Success.' });
+		const { createdAt, updatedAt, ...me } = req.user;
+		return res.status(200).json({ me, message: 'Success.' });
 	}
 
 	async getUser(req: Request, res: Response): Promise<Response> {
@@ -98,7 +99,8 @@ class UserController {
 				throw this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
-		const me = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
+
+		const { createdAt, updatedAt, ...me } = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
 
 		return res.status(200).json({ me, message: 'Success.' });
 	}
@@ -123,7 +125,7 @@ class UserController {
 		const { newPassword, password } = req.body as Record<string, string>;
 
 		// We need to fetch user again, since we need the password which is not provided by middleware passport.
-		const user = await this.userPrismaService.getUserById(req.user.id);
+		const user = await this.userPrismaService.getUserById(req.user.id, true);
 
 		if (!user) {
 			logger.alert({

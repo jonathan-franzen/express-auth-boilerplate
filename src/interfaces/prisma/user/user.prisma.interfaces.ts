@@ -17,5 +17,8 @@ export interface UserPrismaInterface {
 	lastName: string;
 	roles: Role[];
 	updatedAt: Date;
+}
+
+export interface UserPrismaWithFunctionsInterface extends UserPrismaInterface {
 	validatePassword: (rawPassword: string) => Promise<boolean>;
 }

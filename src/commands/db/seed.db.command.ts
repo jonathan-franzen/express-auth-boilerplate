@@ -18,7 +18,7 @@ async function createUser(userCreateInput: UserCreateInput): Promise<void> {
 	await userPrismaService.createOrUpdateUser(user.email, { ...user });
 }
 
-function getUsers(): (Omit<UserPrismaInterface, 'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt' | 'validatePassword'> & { password: string })[] {
+function getUsers(): (Omit<UserPrismaInterface, 'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt'> & { password: string })[] {
 	return [
 		{
 			email: 'admin@email.com',

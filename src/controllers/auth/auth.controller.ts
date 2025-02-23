@@ -68,7 +68,7 @@ class AuthController {
 		const { email, password } = req.body as Record<string, string>;
 		const { refreshToken } = req.cookies as Record<string, string>;
 
-		const user = await this.userPrismaService.getUserByEmail(email);
+		const user = await this.userPrismaService.getUserByEmail(email, true);
 
 		if (!user) {
 			logger.warning({
