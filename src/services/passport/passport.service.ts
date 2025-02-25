@@ -20,8 +20,8 @@ class PassportService {
 		return passport;
 	}
 
-	private verifyCallback(jwt_payload: { userInfo?: { id?: string } }, done: VerifiedCallback): void {
-		const id = jwt_payload?.userInfo?.id as string;
+	private verifyCallback(jwtPayload: { userInfo?: { id?: string } }, done: VerifiedCallback): void {
+		const id = jwtPayload?.userInfo?.id as string;
 
 		if (!id) {
 			return done(undefined, false);

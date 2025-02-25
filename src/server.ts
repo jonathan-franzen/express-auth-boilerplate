@@ -15,7 +15,7 @@ const app = express();
 
 app.disable('x-powered-by');
 
-app.use((req: Request, _res: Response, next: NextFunction): void => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
 	logger.info(`Incoming Request: ${req.method} ${req.url}`);
 	next();
 });
