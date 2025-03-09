@@ -14,7 +14,7 @@ export default [
 			globals: globals.node,
 			parser: tseslint,
 			parserOptions: {
-				ecmaVersion: 2021, // Ensures ESLint supports replaceAll()
+				ecmaVersion: 2021,
 				project: './tsconfig.json',
 				sourceType: 'module',
 				tsconfigRootDir: process.cwd(),
