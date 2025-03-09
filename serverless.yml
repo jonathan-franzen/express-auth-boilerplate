@@ -2,46 +2,59 @@ service: express-auth-boilerplate
 frameworkVersion: '>=4.0.0'
 
 plugins:
-  - serverless-offline-sqs
-  - serverless-offline
+  - serverless-prune-versions
+  - serverless-plugin-typescript
+  - serverless-plugin-common-excludes
 
-custom:
-  stage: ${opt:stage, "offline"}
-  cronEnabled:
-    offline: true
-    prod: true
-  serverless-offline-sqs:
-    autoCreate: true
-    apiVersion: '2012-11-05'
-    endpoint: http://localhost:9324
-    skipCacheInvalidation: false
+build:
+  esbuild: false
 
 package:
   individually: true
-  exclude:
-    - coverage/**
-    - test/**
-    - secrets.yml
-  include:
-    - src/**/*
+  excludeDevDependencies: true
+  patterns:
+    - 'prisma'
+    - 'tsconfig.json'
+
+custom:
+  stage: ${opt:stage, "offline"}
+  region: ${self:custom.availableRegions.${self:custom.stage}}
+  availableRegions:
+    prod: eu-north-1
+  cronEnabled:
+    prod: true
+  myVpc:
+    prod:
+      securityGroupIds:
+        - sg-XXXXX
+      subnetIds:
+        - subnet-XXXXX
+        - subnet-XXXXX
+        - subnet-XXXXX
+  myEnvironment:
+    prod:
+      DATABASE_URL: ${ssm:/some/ssm-parameter}
+      ACCESS_TOKEN_SECRET: ${ssm:/some/ssm-parameter}
+      REFRESH_TOKEN_SECRET: ${ssm:/some/ssm-parameter}
+      APP_ENV: prod
+      FRONTEND_URL: http://localhost:3000
+      MAILER_FROM: '"Example Team" <info@example.com>'
+      AWS_REGION: eu-north-1
+      WORKQUEUE_URL: https://sqs.<AWS_REGION>.amazonaws.com/<ACCOUNT_ID>/express-auth-boilerplate-<STAGE>-workqueue
+      LOG_LEVEL: warning
 
 provider:
   name: aws
   runtime: nodejs20.x
-  region: eu-north-1
-  stage: ${opt:stage, 'staging'}
+  region: ${self:custom.region}
+  stage: ${self:custom.stage}
   timeout: 20
-  environment:
-    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/express_auth_boilerplate?schema=public
-    ACCESS_TOKEN_SECRET: XXXXX
-    REFRESH_TOKEN_SECRET: XXXXX
-    APP_ENV: dev
-    FRONTEND_URL: http://localhost:3000
-    MAILER_FROM: '"Example Team" <info@example.com>'
-    AWS_REGION: eu-north-1
-    WORKQUEUE_URL: http://localhost:9324/000000000000/workqueue
-  # PATH: Only if serverless-offline can't find your local Node installment
-
+  lambdaHashingVersion: 20201221
+  deploymentBucket:
+    name: some-bucket-name-${self:custom.region}
+    blockPublicAccess: true
+  vpc: ${self:custom.myVpc.${self:custom.stage}}
+  environment: ${self:custom.myEnvironment.${self:custom.stage}}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -71,11 +84,13 @@ functions:
     handler: src/console.handler
     timeout: 900 # in seconds
     reservedConcurrency: 5 # max messages processed in parallel
+    environment:
+      LOG_LEVEL: info
     events:
       - schedule:
           enabled: ${self:custom.cronEnabled.${self:custom.stage}}
-          rate: rate(1 hour)
-          input: 'yarn command db:delete-expired-tokens'
+          rate: rate(1 day)
+          input: '"db:delete-expired-tokens"'
 
 resources:
   Resources:

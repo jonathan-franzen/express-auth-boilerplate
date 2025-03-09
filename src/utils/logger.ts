@@ -1,5 +1,5 @@
-import { APP_ENV } from '@/constants/environment.constants.js';
-import { TransformableInfo } from 'logform';
+import { LOG_LEVEL } from '@/constants/environment.constants.js';
+import { Format } from 'logform';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import * as os from 'node:os';
 import winston, { createLogger, format, transports } from 'winston';
@@ -20,7 +20,7 @@ const monologLevels = {
 	warning: 300,
 };
 
-const logFormat = printf(({ context, extra, level, message }: TransformableInfo): string => {
+const logFormat: Format = printf(({ context, extra, level, message }): string => {
 	if (!context) {
 		context = {};
 	}
@@ -53,7 +53,7 @@ const logFormat = printf(({ context, extra, level, message }: TransformableInfo)
 
 const logger = createLogger({
 	format: format.combine(timestamp(), logFormat),
-	level: APP_ENV === 'prod' ? 'warning' : 'debug',
+	level: LOG_LEVEL,
 	levels: winston.config.syslog.levels,
 	transports: [new transports.Console()],
 });

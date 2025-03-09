@@ -1,14 +1,14 @@
 {
-	"type": "module",
 	"license": "MIT",
 	"dependencies": {
 		"@open-draft/until": "^2.1.0",
-		"@prisma/client": "6.0.1",
-		"bcrypt": "^5.1.1",
+		"@prisma/client": "^6.4.1",
+		"bcryptjs": "^3.0.2",
 		"commander": "^12.1.0",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
+		"execa": "^5.1.1",
 		"express": "^4.21.2",
 		"express-async-handler": "^1.2.0",
 		"express-rate-limit": "^7.4.1",
@@ -18,18 +18,14 @@
 		"nodemailer": "^6.9.16",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
-		"serverless-console": "^1.0.7",
 		"serverless-http": "^3.2.0",
 		"serverless-sqs-events": "^1.0.0",
+		"tsconfig-paths": "^4.2.0",
 		"twig": "^1.17.1",
 		"winston": "^3.17.0"
 	},
-	"resolutions": {
-		"strip-ansi": "6.0.0"
-	},
 	"scripts": {
-		"dev": "tsc --noEmit && nodemon --watch src --exec 'tsx' src/server.ts",
-		"serverless-dev": "yarn serverless offline --httpPort 8000 --lambdaPort 8002",
+		"dev": "nodemon --watch src --exec tsx src/server.ts ",
 		"start": "tsx src/server.ts",
 		"command": "tsx src/commands/index.ts",
 		"prettier": "prettier --write --ignore-unknown .",
@@ -39,7 +35,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.20.0",
-		"@types/bcrypt": "^5.0.2",
+		"@types/bcryptjs": "^2.4.6",
 		"@types/commander": "^2.12.5",
 		"@types/cookie-parser": "^1.4.7",
 		"@types/cors": "^2.8.17",
@@ -63,6 +59,9 @@
 		"serverless": "^4.4.16",
 		"serverless-offline": "^14.4.0",
 		"serverless-offline-sqs": "^8.0.0",
+		"serverless-plugin-common-excludes": "^4.0.0",
+		"serverless-plugin-typescript": "^2.1.5",
+		"serverless-prune-versions": "^1.0.4",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.3",
 		"typescript-eslint": "^8.24.1"

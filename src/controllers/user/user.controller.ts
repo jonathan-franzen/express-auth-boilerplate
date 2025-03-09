@@ -132,7 +132,7 @@ class UserController {
 				context: {
 					id: req.user.id,
 				},
-				message: 'User not found when trying to reset password.',
+				message: 'Attempt to update password for non-existing user.',
 			});
 
 			throw this.httpErrorService.internalServerError();

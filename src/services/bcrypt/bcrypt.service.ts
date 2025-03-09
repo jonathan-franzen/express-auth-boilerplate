@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 class BcryptService {
 	async compare(text: string, comparisonText: string): Promise<boolean> {

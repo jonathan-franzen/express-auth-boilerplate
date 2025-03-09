@@ -1,19 +1,22 @@
 {
-	"compilerOptions": {
-		"target": "ES6",
-		"module": "Node16",
-		"skipLibCheck": true,
-		"strict": true,
-		"noImplicitAny": true,
-		"declaration": true,
-		"outDir": "./dist",
-		"rootDir": ".",
-		"moduleResolution": "Node16",
-		"paths": {
-			"@/*": ["./src/*"]
-		},
-		"removeComments": true
-	},
-	"include": ["**/*"],
-	"exclude": ["node_modules", "coverage", ".build", ".serverless", "_optimize", "_warmup", "bin"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["es2023"],
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "removeComments": true
+  },
+  "include": ["**/*"],
+  "exclude": ["node_modules", "coverage", ".build", ".serverless", "_optimize", "_warmup", "bin"]
 }

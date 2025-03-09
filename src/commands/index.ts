@@ -1,4 +1,6 @@
+import 'tsconfig-paths/register';
 import dbCommands from '@/commands/db/index.js';
+import { AWS_LAMBDA_FUNCTION_NAME } from '@/constants/environment.constants.js';
 import { Command } from 'commander';
 
 export const commander = new Command();
@@ -9,4 +11,6 @@ for (const cmd of dbCommands) {
 	commander.addCommand(cmd);
 }
 
-commander.parse(process.argv);
+if (!AWS_LAMBDA_FUNCTION_NAME) {
+	commander.parse(process.argv);
+}

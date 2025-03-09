@@ -8,6 +8,7 @@ const env: NodeJS.ProcessEnv = process.env;
 // App
 export const APP_ENV = (env.APP_ENV as string) || 'dev';
 export const PORT = (env.PORT as string) || '8000';
+export const LOG_LEVEL = (env.LOG_LEVEL as string) || 'debug';
 export const AWS_REGION = env.AWS_REGION as string;
 
 // Tokens

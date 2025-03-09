@@ -1,3 +1,4 @@
+import 'tsconfig-paths/register';
 import eventManager from '@/events/index.js';
 import { SQSEvent } from 'serverless-sqs-events';
 

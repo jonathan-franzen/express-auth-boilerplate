@@ -55,7 +55,7 @@ class AuthController {
 				context: {
 					email,
 				},
-				message: 'User not found when verifying reset password token.',
+				message: 'Attempt to reset-password-token verification on non-existing user.',
 			});
 
 			throw this.httpErrorService.tokenInvalidError();
@@ -75,7 +75,7 @@ class AuthController {
 				context: {
 					email,
 				},
-				message: 'Attempted login where user does not exist.',
+				message: 'Attempt to login on non-existing user.',
 			});
 
 			// Bcrypt to make sure response time is consistent.
@@ -105,7 +105,7 @@ class AuthController {
 						context: {
 							email,
 						},
-						message: 'Attempted refresh token reuse at login.',
+						message: 'Attempt to reuse refresh token at login.',
 					});
 
 					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
@@ -152,7 +152,7 @@ class AuthController {
 					context: {
 						email: foundUser.email,
 					},
-					message: 'Attempted reuse of refresh token mitigated.',
+					message: 'Attempt to reuse refresh token mitigated.',
 				});
 			}
 
@@ -268,7 +268,7 @@ class AuthController {
 				context: {
 					email,
 				},
-				message: 'User not found when resetting password.',
+				message: 'Attempt to reset-password on non-existing user.',
 			});
 
 			throw this.httpErrorService.tokenInvalidError();
@@ -325,7 +325,7 @@ class AuthController {
 					email,
 					verifyEmailToken,
 				},
-				message: 'User not found when verifying email.',
+				message: 'Attempt to verify email on non-existing user.',
 			});
 
 			throw this.httpErrorService.tokenInvalidError();
