@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 
 import UserCreateInput = Prisma.UserCreateInput;
 import UserUpdateInput = Prisma.UserUpdateInput;
-import UserWhereUniqueInput = Prisma.UserWhereUniqueInput;
 
 class UserPrismaService extends PrismaService {
 	async createOrUpdateUser(email: string, userCreateUpdateInput: UserCreateInput): Promise<UserPrismaInterface> {
@@ -79,11 +78,23 @@ class UserPrismaService extends PrismaService {
 		});
 	}
 
-	async updateUser(where: UserWhereUniqueInput, data: UserUpdateInput): Promise<UserPrismaInterface> {
+	async updateUserByEmail(email: string, data: UserUpdateInput): Promise<UserPrismaInterface> {
 		return prisma.user.update({
 			data: data,
 			omit: { validatePassword: true },
-			where: where,
+			where: {
+				email,
+			},
+		});
+	}
+
+	async updateUserById(id: string, data: UserUpdateInput): Promise<UserPrismaInterface> {
+		return prisma.user.update({
+			data: data,
+			omit: { validatePassword: true },
+			where: {
+				id,
+			},
 		});
 	}
 }

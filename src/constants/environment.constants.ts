@@ -3,7 +3,7 @@ import process from 'node:process';
 
 dotenv.config({ path: process.env.APP_ENV == 'prod' ? '.env' : '.env.local' });
 
-const env: NodeJS.ProcessEnv = process.env;
+const env = process.env;
 
 // App
 export const APP_ENV = (env.APP_ENV as string) || 'dev';
@@ -16,8 +16,8 @@ export const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET as string;
 export const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET as string;
 
 // General
-export const MAILER_FROM = env.MAILER_FROM as string;
 export const FRONTEND_URL = env.FRONTEND_URL as string;
+export const MAILER_FROM = env.MAILER_FROM as string;
 export const WORKQUEUE_URL = env.WORKQUEUE_URL as string;
 
 // Provided

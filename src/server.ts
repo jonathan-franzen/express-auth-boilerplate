@@ -1,4 +1,4 @@
-import 'tsconfig-paths/register';
+import 'tsconfig-paths/register.js';
 import expressRateLimitConfig from '@/config/express-rate-limit.config.js';
 import { AWS_LAMBDA_FUNCTION_NAME, FRONTEND_URL, PORT } from '@/constants/environment.constants.js';
 import errorHandlerMiddleware from '@/middlewares/error-handler.middleware.js';

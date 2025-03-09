@@ -17,6 +17,8 @@ package:
     - 'tsconfig.json'
 
 custom:
+  serverlessPluginTypescript:
+    tsConfigFileLocation: './tsconfig.serverless.json'
   stage: ${opt:stage, "offline"}
   region: ${self:custom.availableRegions.${self:custom.stage}}
   availableRegions:
@@ -33,15 +35,15 @@ custom:
         - subnet-XXXXX
   myEnvironment:
     prod:
-      DATABASE_URL: ${ssm:/some/ssm-parameter}
+      APP_ENV: prod
+      LOG_LEVEL: warning
+      AWS_REGION: eu-north-1
       ACCESS_TOKEN_SECRET: ${ssm:/some/ssm-parameter}
       REFRESH_TOKEN_SECRET: ${ssm:/some/ssm-parameter}
-      APP_ENV: prod
+      DATABASE_URL: ${ssm:/some/ssm-parameter}
       FRONTEND_URL: http://localhost:3000
       MAILER_FROM: '"Example Team" <info@example.com>'
-      AWS_REGION: eu-north-1
       WORKQUEUE_URL: https://sqs.<AWS_REGION>.amazonaws.com/<ACCOUNT_ID>/express-auth-boilerplate-<STAGE>-workqueue
-      LOG_LEVEL: warning
 
 provider:
   name: aws

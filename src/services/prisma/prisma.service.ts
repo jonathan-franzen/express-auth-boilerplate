@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js';
 
 class PrismaService {
 	recordNotExistError(err: unknown): boolean {

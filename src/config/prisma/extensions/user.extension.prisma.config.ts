@@ -1,6 +1,6 @@
 import bcryptService from '@/services/bcrypt/index.js';
 import { Prisma } from '@prisma/client';
-import { PayloadToResult } from '@prisma/client/runtime/binary';
+import { PayloadToResult } from '@prisma/client/runtime/binary.js';
 
 import $UserPayload = Prisma.$UserPayload;
 

@@ -1,4 +1,4 @@
-import 'tsconfig-paths/register';
+import 'tsconfig-paths/register.js';
 import { commander } from '@/commands/index.js';
 
 export const handler = async (command: string): Promise<{ body?: string; error?: string; status: number }> => {

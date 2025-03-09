@@ -100,7 +100,7 @@ class UserController {
 			}
 		}
 
-		const { createdAt, updatedAt, ...me } = await this.userPrismaService.updateUser({ id: req.user.id }, { ...userUpdateInput });
+		const { createdAt, updatedAt, ...me } = await this.userPrismaService.updateUserById(req.user.id, { ...userUpdateInput });
 
 		return res.status(200).json({ me, message: 'Success.' });
 	}
@@ -116,7 +116,7 @@ class UserController {
 				throw this.httpErrorService.emailAlreadyInUseError();
 			}
 		}
-		const user = await this.userPrismaService.updateUser({ id }, { ...userUpdateInput });
+		const user = await this.userPrismaService.updateUserById(id, { ...userUpdateInput });
 
 		return res.status(200).json({ message: 'Success.', user });
 	}
@@ -151,14 +151,11 @@ class UserController {
 			throw this.httpErrorService.incorrectPasswordError();
 		}
 
-		await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
+		await this.userTokenPrismaService.deleteUserTokens(user.id);
 
-		await this.userPrismaService.updateUser(
-			{ email: user.email },
-			{
-				password: newPassword,
-			},
-		);
+		await this.userPrismaService.updateUserByEmail(user.email, {
+			password: newPassword,
+		});
 
 		const accessToken = this.jwtService.signAccessToken(user.id, user.email);
 		const refreshToken = this.jwtService.signRefreshToken(user.email);

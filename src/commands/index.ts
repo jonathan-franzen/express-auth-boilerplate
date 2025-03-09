@@ -1,4 +1,4 @@
-import 'tsconfig-paths/register';
+import 'tsconfig-paths/register.js';
 import dbCommands from '@/commands/db/index.js';
 import { AWS_LAMBDA_FUNCTION_NAME } from '@/constants/environment.constants.js';
 import { Command } from 'commander';

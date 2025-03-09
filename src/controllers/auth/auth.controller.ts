@@ -108,7 +108,7 @@ class AuthController {
 						message: 'Attempt to reuse refresh token at login.',
 					});
 
-					await this.userTokenPrismaService.deleteUserTokens({ userId: user.id });
+					await this.userTokenPrismaService.deleteUserTokens(user.id);
 				} else {
 					logger.error({ context: { error }, message: 'Failed to delete refresh token.' });
 
@@ -146,7 +146,7 @@ class AuthController {
 			const foundUser = await this.userPrismaService.getUserByEmail(email);
 
 			if (foundUser) {
-				await this.userTokenPrismaService.deleteUserTokens({ userId: foundUser.id });
+				await this.userTokenPrismaService.deleteUserTokens(foundUser.id);
 
 				logger.alert({
 					context: {
@@ -274,12 +274,9 @@ class AuthController {
 			throw this.httpErrorService.tokenInvalidError();
 		}
 
-		await this.userPrismaService.updateUser(
-			{ email },
-			{
-				password: newPassword,
-			},
-		);
+		await this.userPrismaService.updateUserByEmail(email, {
+			password: newPassword,
+		});
 
 		await this.resetPasswordTokenPrismaService.deleteResetPasswordToken(resetPasswordToken);
 
@@ -342,12 +339,9 @@ class AuthController {
 			return res.status(200).json({ message: 'Email already verified.' });
 		}
 
-		await this.userPrismaService.updateUser(
-			{ email: foundUser.email },
-			{
-				emailVerifiedAt: new Date(Date.now()),
-			},
-		);
+		await this.userPrismaService.updateUserByEmail(foundUser.email, {
+			emailVerifiedAt: new Date(Date.now()),
+		});
 
 		return res.status(200).json({ message: 'Email successfully verified.' });
 	}

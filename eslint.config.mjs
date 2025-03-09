@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import pluginJs from '@eslint/js';
+import importPlugin from 'eslint-plugin-import';
 import perfectionist from 'eslint-plugin-perfectionist';
 import pluginSecurity from 'eslint-plugin-security';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
@@ -12,6 +14,7 @@ export default [
 			globals: globals.node,
 			parser: tseslint,
 			parserOptions: {
+				ecmaVersion: 2021, // Ensures ESLint supports replaceAll()
 				project: './tsconfig.json',
 				sourceType: 'module',
 				tsconfigRootDir: process.cwd(),
@@ -20,11 +23,13 @@ export default [
 	},
 	pluginJs.configs.recommended,
 	...tseslint.configs.recommendedTypeChecked,
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	pluginSecurity.configs.recommended,
 	perfectionist.configs['recommended-natural'],
 	eslintPluginUnicorn.configs['flat/recommended'],
 	{
+		plugins: {
+			import: importPlugin,
+		},
 		rules: {
 			'@typescript-eslint/explicit-function-return-type': ['error'],
 			'@typescript-eslint/no-unnecessary-type-assertion': 'error',
@@ -40,6 +45,7 @@ export default [
 					varsIgnorePattern: '^_',
 				},
 			],
+			'import/extensions': ['error', 'always', { js: 'always', ts: 'never' }],
 			'unicorn/no-nested-ternary': 'off',
 			'unicorn/prefer-string-raw': 'off',
 			'unicorn/prevent-abbreviations': 'off',
