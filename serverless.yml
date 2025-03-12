@@ -2,6 +2,7 @@ service: express-auth-boilerplate
 frameworkVersion: '>=4.0.0'
 
 plugins:
+  - serverless-lift
   - serverless-prune-versions
   - serverless-plugin-typescript
   - serverless-plugin-common-excludes
@@ -23,6 +24,11 @@ custom:
   region: ${self:custom.availableRegions.${self:custom.stage}}
   availableRegions:
     prod: eu-north-1
+  myDomainSettings:
+    prod:
+      domain: api.example.app
+      certificate: '*.example.app'
+      certificateArn: 'arn:aws:acm:<REGION>:<ACCOUNT_ID>:certificate/<ID>' # Needs to be region US-EAST-1
   cronEnabled:
     prod: true
   myVpc:
@@ -93,6 +99,12 @@ functions:
           enabled: ${self:custom.cronEnabled.${self:custom.stage}}
           rate: rate(1 day)
           input: '"db:delete-expired-tokens"'
+
+constructs:
+  website:
+    type: server-side-website
+    domain: ${self:custom.myDomainSettings.${self:custom.stage}.domain}
+    certificate: ${self:custom.myDomainSettings.${self:custom.stage}.certificateArn}
 
 resources:
   Resources:
