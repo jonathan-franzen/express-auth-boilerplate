@@ -289,7 +289,7 @@ class AuthController {
 		const user = await this.userPrismaService.getUserByEmail(email);
 
 		if (!user) {
-			return res.status(200).json({ message: 'Email successfully sent.' });
+			return res.status(200).json({ message: 'Email sent.' });
 		}
 
 		const resetPasswordToken = this.jwtService.signResetPasswordToken(user.email);
@@ -300,7 +300,7 @@ class AuthController {
 
 		await this.eventManager.send('sendEmail', emailOptions);
 
-		return res.status(200).json({ message: 'Email successfully sent.' });
+		return res.status(200).json({ message: 'Email sent.' });
 	}
 
 	async postVerifyEmail(req: Request, res: Response): Promise<Response> {
