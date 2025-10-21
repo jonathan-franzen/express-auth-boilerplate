@@ -1,4 +1,4 @@
-import { UserController } from '@/server/controllers/user/user.controller.js'
+import { UserController } from '@/server/controllers/v1/user/user.controller.js'
 import {
   httpErrorService,
   prismaErrorService,

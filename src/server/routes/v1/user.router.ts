@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express'
 import asyncHandler from 'express-async-handler'
 
-import { userController } from '@/server/controllers/user/index.js'
+import { userController } from '@/server/controllers/v1/user/index.js'
 import { validateRequestMiddleware } from '@/server/middlewares/validate-request.middleware.js'
 import { verifyRolesMiddleware } from '@/server/middlewares/verify-roles.middleware.js'
 import { AuthenticatedRequest } from '@/types/api/request.types.js'

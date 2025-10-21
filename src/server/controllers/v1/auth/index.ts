@@ -1,4 +1,4 @@
-import { AuthController } from '@/server/controllers/auth/auth.controller.js'
+import { AuthController } from '@/server/controllers/v1/auth/auth.controller.js'
 import {
   httpErrorService,
   prismaErrorService,

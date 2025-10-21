@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express'
 import asyncHandler from 'express-async-handler'
 
-import { authController } from '@/server/controllers/auth/index.js'
+import { authController } from '@/server/controllers/v1/auth/index.js'
 import { validateRequestMiddleware } from '@/server/middlewares/validate-request.middleware.js'
 import { loginValidator } from '@/validators/auth/login.validator.js'
 import { logoutValidator } from '@/validators/auth/logout.validator.js'
