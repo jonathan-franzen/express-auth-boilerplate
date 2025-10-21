@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:15-alpine
     ports:
-      - '5432:5432'
+      - '5434:5432'
     environment:
       POSTGRES_DB: express_auth_boilerplate
       POSTGRES_HOST_AUTH_METHOD: trust

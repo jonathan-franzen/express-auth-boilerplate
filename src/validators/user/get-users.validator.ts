@@ -1,15 +1,21 @@
-import filtersValidator from '@/validators/fragments/filters.validator.js';
-import limitValidator from '@/validators/fragments/limit.validator.js';
-import pageValidator from '@/validators/fragments/page.validator.js';
-import sortByValidator from '@/validators/fragments/sort-by.validator.js';
-import sortOrderValidator from '@/validators/fragments/sort-order.validator.js';
-import { ValidationChain } from 'express-validator';
+import { z } from 'zod'
 
-function getUsersValidator(): ValidationChain[] {
-	const allowedFiltersKeys = ['email'];
-	const allowedSortBy = ['createdAt', 'firstName', 'lastName'];
+import { order, pagination } from '@/validators/common.validator.js'
 
-	return [...pageValidator(), ...limitValidator(), ...filtersValidator({ allowedFiltersKeys }), ...sortByValidator({ allowedSortBy }), ...sortOrderValidator()];
-}
+const getUsersOrderBy = z.object({
+  firstName: order,
+  lastName: order,
+  email: order,
+})
 
-export default getUsersValidator;
+const getUsersRequestFilter = z.object({
+  search: z.string().optional(),
+})
+
+export const getUsersValidator = z.object({
+  body: z.object({
+    filter: getUsersRequestFilter,
+    orderBy: getUsersOrderBy,
+    pagination: pagination,
+  }),
+})

@@ -1,8 +1,9 @@
-import idValidator from '@/validators/fragments/id.validator.js';
-import { ValidationChain } from 'express-validator';
+import { z } from 'zod'
 
-function getUserValidator(): ValidationChain[] {
-	return [...idValidator()];
-}
+const getUserRequestParams = z.object({
+  id: z.string().nonempty('User ID is required.'),
+})
 
-export default getUserValidator;
+export const getUserValidator = z.object({
+  params: getUserRequestParams,
+})

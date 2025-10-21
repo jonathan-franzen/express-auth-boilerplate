@@ -1,80 +1,68 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-import pluginJs from '@eslint/js';
-import importPlugin from 'eslint-plugin-import';
-import perfectionist from 'eslint-plugin-perfectionist';
-import pluginSecurity from 'eslint-plugin-security';
-import eslintPluginUnicorn from 'eslint-plugin-unicorn';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import js from '@eslint/js'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import importPlugin from 'eslint-plugin-import'
+import prettierPlugin from 'eslint-plugin-prettier'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import globals from 'globals'
 
 export default [
-	{ files: ['**/*.{js,mjs,cjs,ts}'] },
-	{
-		languageOptions: {
-			globals: globals.node,
-			parser: tseslint,
-			parserOptions: {
-				ecmaVersion: 2021,
-				project: './tsconfig.json',
-				sourceType: 'module',
-				tsconfigRootDir: process.cwd(),
-			},
-		},
-	},
-	pluginJs.configs.recommended,
-	...tseslint.configs.recommendedTypeChecked,
-	pluginSecurity.configs.recommended,
-	perfectionist.configs['recommended-natural'],
-	eslintPluginUnicorn.configs['flat/recommended'],
-	{
-		plugins: {
-			import: importPlugin,
-		},
-		rules: {
-			'@typescript-eslint/explicit-function-return-type': ['error'],
-			'@typescript-eslint/no-unnecessary-type-assertion': 'error',
-			'@typescript-eslint/no-unused-vars': [
-				'error',
-				{
-					args: 'all',
-					argsIgnorePattern: '^_',
-					caughtErrors: 'all',
-					caughtErrorsIgnorePattern: '^_',
-					destructuredArrayIgnorePattern: '^_',
-					ignoreRestSiblings: true,
-					varsIgnorePattern: '^_',
-				},
-			],
-			'import/extensions': ['error', 'always', { js: 'always', ts: 'never' }],
-			'unicorn/no-nested-ternary': 'off',
-			'unicorn/prefer-string-raw': 'off',
-			'unicorn/prevent-abbreviations': 'off',
-		},
-	},
-	{
-		ignores: [
-			'**/temp.js',
-			'config/*',
-			'node_modules/',
-			'.serverless/',
-			'dist/',
-			'build/',
-			'.eslintcache',
-			'npm-debug.log*',
-			'yarn-debug.log*',
-			'yarn-error.log*',
-			'.env',
-			'.env.local',
-			'.env.development',
-			'.env.test',
-			'.env.production',
-			'.vscode/',
-			'.idea/',
-			'*.iml',
-			'.DS_Store',
-			'coverage/',
-			'tmp/',
-			'temp/',
-		],
-	},
-];
+  js.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+        ecmaVersion: 2025,
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      import: importPlugin,
+      prettier: prettierPlugin,
+      'simple-import-sort': simpleImportSort,
+    },
+    settings: {
+      'import/parsers': { '@typescript-eslint/parser': ['.ts', '.tsx'] },
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+      },
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      'prettier/prettier': 'warn',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+      'import/no-named-as-default-member': 'off',
+      'import/no-unresolved': 'error',
+      'import/extensions': [
+        'error',
+        'always',
+        { js: 'always', ts: 'never' }
+      ],
+      'no-restricted-imports': [
+        'error',
+        { patterns: ['../*', './*', '{.,..}/**'] },
+      ],
+    },
+  },
+]

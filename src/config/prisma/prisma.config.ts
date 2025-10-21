@@ -1,18 +1,18 @@
-import { user } from '@/config/prisma/extensions/user.extension.prisma.config.js';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-export type PrismaTransaction = Parameters<Parameters<DbClient['$transaction']>[0]>[0];
-type DbClient = ReturnType<typeof createClient>;
+import { enumExtension } from '@/config/prisma/extensions/enum.extension.prisma.config.js'
+import { passwordExtension } from '@/config/prisma/extensions/password.extension.prisma.config.js'
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createClient = () => {
-	return new PrismaClient({
-		omit: {
-			user: {
-				password: true,
-			},
-		},
-	}).$extends(user);
-};
+  return new PrismaClient({
+    omit: {
+      user: {
+        password: true,
+      },
+    },
+  })
+    .$extends(passwordExtension)
+    .$extends(enumExtension)
+}
 
-export const prisma = createClient();
+export const prisma = createClient()

@@ -1,13 +1,10 @@
 const config = {
-	arrowParens: 'always',
-	bracketSameLine: false,
-	bracketSpacing: true,
-	jsxSingleQuote: true,
-	printWidth: 160,
-	semi: true,
-	singleQuote: true,
-	tabWidth: 2,
-	useTabs: true,
-};
+  singleQuote: true,
+  trailingComma: 'es5',
+  printWidth: 80,
+  tabWidth: 2,
+  useTabs: false,
+  semi: false,
+}
 
-export default config;
+export default config

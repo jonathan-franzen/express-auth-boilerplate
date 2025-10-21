@@ -1,53 +1,61 @@
-import { UserPrismaInterface } from '@/interfaces/prisma/user/user.prisma.interfaces.js';
-import userPrismaService from '@/services/prisma/user/index.js';
-import logger from '@/utils/logger.js';
-import { until } from '@open-draft/until';
-import { Prisma, Role } from '@prisma/client';
-import { Command } from 'commander';
+import { until } from '@open-draft/until'
+import { Prisma } from '@prisma/client'
+import { Command } from 'commander'
 
-import UserCreateInput = Prisma.UserCreateInput;
+import { logger } from '@/utils/logger.js'
 
-const seedDbCommand = new Command('db:seed').description('Init database').action(seed);
+import UserCreateInput = Prisma.UserCreateInput
+import { userService } from '@/server/services/user/index.js'
+import { User, UserRoles } from '@/types/user/user.types.js'
+
+const seedDbCommand = new Command('db:seed')
+  .description('Init database')
+  .action(seed)
 
 async function createUser(userCreateInput: UserCreateInput): Promise<void> {
-	const user = {
-		...userCreateInput,
-		emailVerifiedAt: new Date(Date.now()),
-	};
+  const user = {
+    ...userCreateInput,
+    emailVerifiedAt: new Date(Date.now()),
+  }
 
-	await userPrismaService.createOrUpdateUser(user.email, { ...user });
+  await userService.upsertUser({ ...user }, { email: user.email }, { ...user })
 }
 
-function getUsers(): (Omit<UserPrismaInterface, 'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt'> & { password: string })[] {
-	return [
-		{
-			email: 'admin@email.com',
-			firstName: 'John',
-			lastName: 'Doe',
-			password: 'admin',
-			roles: [Role.USER, Role.ADMIN],
-		},
-		{
-			email: 'user@email.com',
-			firstName: 'Don',
-			lastName: 'Joe',
-			password: 'user',
-			roles: [Role.USER],
-		},
-	];
+function getUsers(): (Omit<
+  User,
+  'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt'
+> & { password: string })[] {
+  return [
+    {
+      email: 'admin@email.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      password: 'admin',
+      roles: [UserRoles.USER, UserRoles.ADMIN],
+    },
+    {
+      email: 'user@email.com',
+      firstName: 'Don',
+      lastName: 'Joe',
+      password: 'user',
+      roles: [UserRoles.USER],
+    },
+  ]
 }
 
 async function seed(): Promise<void> {
-	const users = getUsers();
+  const users = getUsers()
 
-	const { error } = await until(() => Promise.all(users.map((user) => createUser(user))));
+  const [error] = await until(() =>
+    Promise.all(users.map((user) => createUser(user)))
+  )
 
-	if (error) {
-		logger.error('Error during database seeding:', error);
-		throw new Error('Error during database seeding.');
-	}
+  if (error) {
+    logger.error('Error during database seeding:', error)
+    throw new Error('Error during database seeding.')
+  }
 
-	logger.info('Seeding completed successfully.');
+  logger.info('Seeding completed successfully.')
 }
 
-export default seedDbCommand;
+export default seedDbCommand

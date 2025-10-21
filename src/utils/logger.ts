@@ -1,61 +1,62 @@
-import { LOG_LEVEL } from '@/constants/environment.constants.js';
-import { Format } from 'logform';
-import { AsyncLocalStorage } from 'node:async_hooks';
-import * as os from 'node:os';
-import winston, { createLogger, format, transports } from 'winston';
+import { AsyncLocalStorage } from 'node:async_hooks'
+import * as os from 'node:os'
 
-const { printf, timestamp } = format;
-export const loggerAsyncStorage = new AsyncLocalStorage<{
-	context?: Record<string, string>;
-}>();
+import winston, { createLogger, format, transports } from 'winston'
+
+import { LOG_LEVEL } from '@/constants/environment.constants.js'
+
+const { printf, timestamp } = format
+const loggerAsyncStorage = new AsyncLocalStorage<{
+  context?: Record<string, string>
+}>()
 
 const monologLevels = {
-	alert: 550,
-	critical: 500,
-	debug: 100,
-	emergency: 600,
-	error: 400,
-	info: 200,
-	notice: 250,
-	warning: 300,
-};
+  alert: 550,
+  critical: 500,
+  debug: 100,
+  emergency: 600,
+  error: 400,
+  info: 200,
+  notice: 250,
+  warning: 300,
+}
 
-const logFormat: Format = printf(({ context, extra, level, message }): string => {
-	if (!context) {
-		context = {};
-	}
+const logFormat = printf(({ context, extra, level, message }): string => {
+  if (!context) {
+    context = {}
+  }
 
-	if (typeof context !== 'object') {
-		console.error('Log message context wrong format.');
-		throw new Error('Internal Server Error.');
-	}
+  if (typeof context !== 'object') {
+    throw new Error('Log message context wrong format.')
+  }
 
-	context = {
-		...context,
-		...loggerAsyncStorage.getStore()?.context,
-	};
+  context = {
+    ...context,
+    ...loggerAsyncStorage.getStore()?.context,
+  }
 
-	level = level === 'emerg' ? 'emergency' : level === 'crit' ? 'critical' : level;
+  level =
+    level === 'emerg' ? 'emergency' : level === 'crit' ? 'critical' : level
 
-	return JSON.stringify({
-		'@timestamp': new Date().toISOString(),
-		'@version': 1,
-		channel: 'app',
-		context: context,
-		extra: extra,
-		host: os.hostname(),
-		level: level.toUpperCase(),
-		message: message,
-		monolog_level: monologLevels[level as keyof typeof monologLevels],
-		type: 'express-auth-boilerplate',
-	});
-});
+  return JSON.stringify({
+    '@timestamp': new Date().toISOString(),
+    '@version': 1,
+    channel: 'app',
+    context: context,
+    extra: extra,
+    host: os.hostname(),
+    level: level.toUpperCase(),
+    message: message,
+    monolog_level: monologLevels[level as keyof typeof monologLevels],
+    type: 'discounts-api',
+  })
+})
 
 const logger = createLogger({
-	format: format.combine(timestamp(), logFormat),
-	level: LOG_LEVEL,
-	levels: winston.config.syslog.levels,
-	transports: [new transports.Console()],
-});
+  format: format.combine(timestamp(), logFormat),
+  level: LOG_LEVEL,
+  levels: winston.config.syslog.levels,
+  transports: [new transports.Console()],
+})
 
-export default logger;
+export { logger, loggerAsyncStorage }
