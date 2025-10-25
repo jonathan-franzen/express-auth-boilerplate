@@ -26,7 +26,8 @@
     "zod": "^4.1.5"
   },
   "scripts": {
-    "dev": "nodemon --watch src --exec tsx src/server/server.ts ",
+    "dev": "nodemon --watch src --exec tsx src/server/server.ts",
+    "compose": "docker compose up",
     "start": "tsx src/server/server.ts",
     "prettier": "prettier --write --ignore-unknown .",
     "prettier:check": "prettier --check --ignore-unknown .",
