@@ -35,6 +35,9 @@ const validateRequestMiddleware =
           params: schema?.shape.params
             ? schema.shape.params.strict()
             : z.object({}).strict(),
+          cookies: schema?.shape.cookies
+            ? schema.shape.cookies.strict()
+            : z.object({}).strict(),
         })
         .strict()
 
@@ -42,6 +45,7 @@ const validateRequestMiddleware =
         body: req.body,
         query: req.query,
         params: req.params,
+        cookies: req.cookies,
       })
 
       if ('body' in req) {
@@ -52,6 +56,9 @@ const validateRequestMiddleware =
       }
       if ('params' in req) {
         req.params = result.params
+      }
+      if ('cookies' in req) {
+        req.cookies = result.cookies
       }
 
       next?.()

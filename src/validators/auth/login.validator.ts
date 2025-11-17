@@ -6,7 +6,7 @@ const loginRequestBody = z.object({
 })
 
 const loginRequestCookies = z.object({
-  refreshToken: z.string().nonempty('Refresh token is required.'),
+  refreshToken: z.string().optional(),
 })
 
 export const loginValidator = z.object({
