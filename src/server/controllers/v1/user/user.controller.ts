@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { Request, Response } from 'express'
 
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import { APP_ENV } from '@/constants/environment.constants.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { PrismaErrorService } from '@/server/services/error/prisma.error.service.js'
 import { JwtService } from '@/server/services/jwt/jwt.service.js'
@@ -88,7 +89,7 @@ class UserController {
       throw this.httpErrorService.internalServerError()
     }
 
-    const passwordsMatch = user.validatePassword(password)
+    const passwordsMatch = await user.validatePassword(password)
 
     if (!passwordsMatch) {
       logger.warning({
@@ -101,7 +102,7 @@ class UserController {
       throw this.httpErrorService.incorrectPasswordError()
     }
 
-    await this.userTokenService.deleteUserTokens({ id: user.id })
+    await this.userTokenService.deleteUserTokens({ userId: user.id })
 
     await this.userService.updateUser(
       { email: user.email },
@@ -121,8 +122,8 @@ class UserController {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: 'none',
-      secure: process.env.APP_ENV === 'prod',
+      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+      secure: APP_ENV === 'prod',
     })
 
     return sendResponse<'data', ChangePasswordResponseData>(res, 200, {
@@ -241,7 +242,7 @@ class UserController {
       }
     }
 
-    return sendResponse<'empty', User>(res, 204, undefined)
+    return sendResponse<'empty'>(res, 204, undefined)
   }
 }
 

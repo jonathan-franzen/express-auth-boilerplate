@@ -74,7 +74,7 @@ class AuthController {
       )
 
       if (
-        decodedResetPasswordToken &&
+        deleteTokenError &&
         !this.prismaErrorService.isRecordNotExistError(deleteTokenError)
       ) {
         logger.alert({
@@ -303,22 +303,32 @@ class AuthController {
       )
 
       if (error) {
-        if (this.prismaErrorService.isRecordNotExistError(error)) {
-          logger.alert({
-            context: {
-              email,
-            },
-            message: 'Attempt to reuse refresh token at login.',
-          })
+        const [refreshTokenError] = await until(() =>
+          this.jwtService.verifyToken<JwtDecodedRefreshToken>(
+            refreshToken,
+            REFRESH_TOKEN_SECRET,
+            'email'
+          )
+        )
 
-          await this.userTokenService.deleteUserTokens({ userId: user.id })
-        } else {
-          logger.error({
-            context: { error },
-            message: 'Failed to delete refresh token.',
-          })
+        if (!refreshTokenError) {
+          if (this.prismaErrorService.isRecordNotExistError(error)) {
+            logger.alert({
+              context: {
+                email,
+              },
+              message: 'Attempt to reuse refresh token at login.',
+            })
 
-          throw this.httpErrorService.internalServerError()
+            await this.userTokenService.deleteUserTokens({ userId: user.id })
+          } else {
+            logger.error({
+              context: { error },
+              message: 'Failed to delete refresh token.',
+            })
+
+            throw this.httpErrorService.internalServerError()
+          }
         }
       }
     }
@@ -334,7 +344,7 @@ class AuthController {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: 'none',
+      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
       secure: APP_ENV === 'prod',
     })
 
@@ -352,12 +362,23 @@ class AuthController {
     })
 
     if (!userToken) {
-      const decodedRefreshToken =
-        await this.jwtService.verifyToken<JwtDecodedRefreshToken>(
+      const [decodedRefreshTokenError, decodedRefreshToken] = await until(() =>
+        this.jwtService.verifyToken<JwtDecodedRefreshToken>(
           refreshToken,
           REFRESH_TOKEN_SECRET,
           'email'
         )
+      )
+
+      if (decodedRefreshTokenError) {
+        res.clearCookie('refreshToken', {
+          httpOnly: true,
+          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+          secure: APP_ENV === 'prod',
+        })
+
+        throw decodedRefreshTokenError
+      }
 
       const foundUser = await this.userService.getUser({
         email: decodedRefreshToken.email,
@@ -376,8 +397,8 @@ class AuthController {
 
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: 'none',
-        secure: false,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
       })
 
       throw this.httpErrorService.tokenInvalidError()
@@ -406,8 +427,8 @@ class AuthController {
 
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: 'none',
-        secure: false,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
       })
 
       throw this.httpErrorService.internalServerError()
@@ -416,8 +437,8 @@ class AuthController {
     if (refreshTokenTokenError) {
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: 'none',
-        secure: false,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
       })
 
       throw refreshTokenTokenError
@@ -436,8 +457,8 @@ class AuthController {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: 'none',
-      secure: process.env.APP_ENV === 'prod',
+      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+      secure: APP_ENV === 'prod',
     })
 
     return sendResponse<'data', RefreshResponseData>(res, 200, {
@@ -527,8 +548,8 @@ class AuthController {
 
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      sameSite: 'none',
-      secure: false,
+      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+      secure: APP_ENV === 'prod',
     })
 
     return sendResponse<'empty'>(res, 204, undefined)
