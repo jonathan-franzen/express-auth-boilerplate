@@ -158,11 +158,7 @@ class UserController {
       this.userService.getUserCount(where),
     ])
 
-    if (!users || users.length === 0) {
-      return res.sendStatus(204)
-    }
-
-    return sendResponse<'pagination', User[]>(res, 200, {
+    return sendResponse<'pagination', User>(res, 200, {
       message: 'Success.',
       data: users,
       count,

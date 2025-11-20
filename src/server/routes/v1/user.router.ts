@@ -36,8 +36,8 @@ userRouter.post(
   })
 )
 
-userRouter.get(
-  '/',
+userRouter.post(
+  '/list',
   validateRequestMiddleware(getUsersValidator),
   verifyRolesMiddleware(UserRoles.ADMIN),
   asyncHandler(async (req: Request, res: Response) => {

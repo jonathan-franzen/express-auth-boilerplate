@@ -15,7 +15,7 @@ const getUsersRequestFilter = z.object({
 export const getUsersValidator = z.object({
   body: z.object({
     filter: getUsersRequestFilter,
-    orderBy: getUsersOrderBy,
+    orderBy: z.union([z.array(getUsersOrderBy), getUsersOrderBy]).optional(),
     pagination: pagination,
   }),
 })
