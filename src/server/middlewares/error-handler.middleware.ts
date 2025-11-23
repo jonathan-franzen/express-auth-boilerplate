@@ -20,6 +20,21 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
     ...(req.body && Object.keys(req.body).length > 0 && { body: req.body }),
   }
 
+  if (error.name === 'AuthenticationError') {
+    logger.error(error.message, {
+      context: {
+        error: error.name,
+        stack: error.stack,
+        ...baseErrorKeys,
+      },
+    })
+
+    return sendResponse<'error'>(res, 401, {
+      message: error.message,
+      error: error.name,
+    })
+  }
+
   if (error instanceof ZodError) {
     const message =
       error.issues.at(0)?.message ?? 'Request failed zod validation'

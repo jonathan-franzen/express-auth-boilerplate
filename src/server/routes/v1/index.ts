@@ -9,7 +9,9 @@ const v1Router = Router()
 v1Router.use('/auth', authRouter)
 
 v1Router.use(
-  passport.getPassportInstance().authenticate('jwt', { session: false })
+  passport
+    .getPassportInstance()
+    .authenticate('jwt', { session: false, failWithError: true })
 )
 
 v1Router.use('/users', userRouter)
