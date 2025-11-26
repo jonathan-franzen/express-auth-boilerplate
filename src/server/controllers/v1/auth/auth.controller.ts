@@ -350,7 +350,7 @@ class AuthController {
 
     return sendResponse<'data', LoginResponseData>(res, 200, {
       message: 'Login successful.',
-      data: { accessToken },
+      data: { accessToken, user },
     })
   }
 
