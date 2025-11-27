@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger.js'
 
 import UserCreateInput = Prisma.UserCreateInput
 import { userService } from '@/server/services/user/index.js'
-import { User, UserRoles } from '@/types/user/user.types.js'
+import { User, UserRoles } from '@/types/user.types.js'
 
 const seedDbCommand = new Command('db:seed')
   .description('Init database')

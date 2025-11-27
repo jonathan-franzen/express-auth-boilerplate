@@ -5,7 +5,7 @@ import {
   ErrorResponse,
   MessageResponse,
   PaginationResponse,
-} from '@/types/api/response.types.js'
+} from '@/types/api.types.js'
 
 type PayloadVariant = 'empty' | 'message' | 'data' | 'pagination' | 'error'
 

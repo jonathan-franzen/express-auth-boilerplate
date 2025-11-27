@@ -9,19 +9,22 @@ import { PrismaErrorService } from '@/server/services/error/prisma.error.service
 import { JwtService } from '@/server/services/jwt/jwt.service.js'
 import { UserService } from '@/server/services/user/user.service.js'
 import { UserTokenService } from '@/server/services/user-token/user-token.service.js'
-import { AuthenticatedRequest } from '@/types/api/request.types.js'
+import { AuthenticatedRequest } from '@/types/api.types.js'
 import {
   ChangePasswordRequestBody,
+  ChangePasswordResponse,
   ChangePasswordResponseData,
-} from '@/types/user/change-password.types.js'
-import { GetUserRequestParams } from '@/types/user/get-user.types.js'
-import { GetUsersRequestBody } from '@/types/user/get-users.types.js'
-import { UpdateSelfRequestBody } from '@/types/user/update-self.types.js'
-import {
+  GetSelfResponse,
+  GetUserByIdResponse,
+  ListUsersRequestBody,
+  ListUsersResponse,
+  UpdateSelfRequestBody,
+  UpdateSelfResponse,
   UpdateUserRequestBody,
-  UpdateUserRequestParams,
-} from '@/types/user/update-user.types.js'
-import { User } from '@/types/user/user.types.js'
+  UpdateUserResponse,
+  User,
+  UserIdParams,
+} from '@/types/user.types.js'
 import { getNameSearchFilter } from '@/utils/get-name-search-filter.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
@@ -41,7 +44,7 @@ class UserController {
     return sendResponse<'data', User>(res, 200, {
       message: 'Success.',
       data: selfData,
-    })
+    } satisfies GetSelfResponse)
   }
 
   async updateSelf(req: AuthenticatedRequest, res: Response) {
@@ -67,7 +70,7 @@ class UserController {
     return sendResponse<'data', User>(res, 200, {
       message: 'Success.',
       data: selfData,
-    })
+    } satisfies UpdateSelfResponse)
   }
 
   async changePassword(req: AuthenticatedRequest, res: Response) {
@@ -129,16 +132,38 @@ class UserController {
     return sendResponse<'data', ChangePasswordResponseData>(res, 200, {
       message: 'Password successfully changed.',
       data: { accessToken },
-    })
+    } satisfies ChangePasswordResponse)
   }
 
-  async getUsers(req: Request, res: Response) {
-    const { pagination, filter, orderBy } = req.body as GetUsersRequestBody
+  async getUserById(req: Request, res: Response) {
+    const { userId } = req.params as UserIdParams
 
-    const nameSearchFilter = getNameSearchFilter(filter.search)
+    const user = await this.userService.getUser({ id: userId })
+
+    if (!user) {
+      logger.warning({
+        context: {
+          id: userId,
+        },
+        message: 'User ID not found.',
+      })
+
+      throw this.httpErrorService.notFoundError()
+    }
+
+    return sendResponse<'data', User>(res, 200, {
+      message: 'Success.',
+      data: user,
+    } satisfies GetUserByIdResponse)
+  }
+
+  async listUsers(req: Request, res: Response) {
+    const { pagination, filter, orderBy } = req.body as ListUsersRequestBody
+
+    const nameSearchFilter = getNameSearchFilter(filter?.search)
 
     const where: Prisma.UserWhereInput = {
-      ...(filter.search && {
+      ...(filter?.search && {
         OR: [
           nameSearchFilter,
           {
@@ -164,33 +189,11 @@ class UserController {
       count,
       pageSize: pagination.pageSize,
       page: pagination.page,
-    })
-  }
-
-  async getUser(req: Request, res: Response) {
-    const { id } = req.params as GetUserRequestParams
-
-    const user = await this.userService.getUser({ id })
-
-    if (!user) {
-      logger.warning({
-        context: {
-          id,
-        },
-        message: 'User ID not found.',
-      })
-
-      throw this.httpErrorService.notFoundError()
-    }
-
-    return sendResponse<'data', User>(res, 200, {
-      message: 'Success.',
-      data: user,
-    })
+    } satisfies ListUsersResponse)
   }
 
   async updateUser(req: Request, res: Response) {
-    const { id } = req.params as UpdateUserRequestParams
+    const { userId } = req.params as UserIdParams
     const userUpdateInput = req.body as UpdateUserRequestBody
 
     if (userUpdateInput.email) {
@@ -198,13 +201,13 @@ class UserController {
         email: userUpdateInput.email,
       })
 
-      if (potentialDuplicate?.id && potentialDuplicate.id !== id) {
+      if (potentialDuplicate?.id && potentialDuplicate.id !== userId) {
         throw this.httpErrorService.emailAlreadyInUseError()
       }
     }
 
     const user = await this.userService.updateUser(
-      { id },
+      { id: userId },
       {
         ...userUpdateInput,
       }
@@ -213,24 +216,26 @@ class UserController {
     return sendResponse<'data', User>(res, 200, {
       message: 'Success.',
       data: user,
-    })
+    } satisfies UpdateUserResponse)
   }
 
   async deleteUser(req: AuthenticatedRequest, res: Response) {
-    const { id } = req.params
+    const { userId } = req.params as UserIdParams
 
-    if (id === req.user.id) {
+    if (userId === req.user.id) {
       throw this.httpErrorService.unableToDeleteSelfError()
     }
 
-    const [error] = await until(() => this.userService.deleteUser({ id }))
+    const [error] = await until(() =>
+      this.userService.deleteUser({ id: userId })
+    )
 
     if (error) {
       if (this.prismaErrorService.isRecordNotExistError(error)) {
         throw this.httpErrorService.notFoundError()
       } else {
         logger.alert({
-          context: { error, userId: id },
+          context: { error, userId },
           message: 'Failed to delete user.',
         })
 

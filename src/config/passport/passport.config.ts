@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt'
 
 import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js'
 import { UserService } from '@/server/services/user/user.service.js'
-import { JwtDecodedAccessToken } from '@/types/jwt/jwt.types.js'
+import { JwtDecodedAccessToken } from '@/types/jwt.types.js'
 
 class PassportConfig {
   constructor(private readonly userService: UserService) {

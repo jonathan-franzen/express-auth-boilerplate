@@ -1,3 +1,13 @@
+import { Request } from 'express'
+
+import { User } from '@/types/user.types.js'
+
+// Request
+export interface AuthenticatedRequest extends Request {
+  user: User
+}
+
+// Response
 export interface MessageResponse {
   message: string
 }

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-import { UserRoles } from '@/types/user/user.types.js'
+import { UserRoles } from '@/types/user.types.js'
 
 export const enumExtension = Prisma.defineExtension({
   result: {

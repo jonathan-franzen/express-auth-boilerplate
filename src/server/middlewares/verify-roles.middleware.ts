@@ -1,10 +1,10 @@
-import { Role } from '@prisma/client'
 import { NextFunction, Request, Response } from 'express'
 
-import { AuthenticatedRequest } from '@/types/api/request.types.js'
+import { AuthenticatedRequest } from '@/types/api.types.js'
+import { UserRoles } from '@/types/user.types.js'
 
 function verifyRolesMiddleware(
-  ...allowedRoles: Role[]
+  ...allowedRoles: UserRoles[]
 ): (req: Request, res: Response, next: NextFunction) => void {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!(req as AuthenticatedRequest).user?.roles) {
@@ -13,7 +13,7 @@ function verifyRolesMiddleware(
 
     const rolesArray = new Set(allowedRoles)
     const canAccess = (req as AuthenticatedRequest).user?.roles.some(
-      (role: Role): boolean => rolesArray.has(role)
+      (role: UserRoles): boolean => rolesArray.has(role)
     )
 
     if (!canAccess) {

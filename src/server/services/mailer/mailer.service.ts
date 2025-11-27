@@ -7,8 +7,8 @@ import Twig from 'twig'
 import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js'
 
 import UserGetPayload = Prisma.UserGetPayload
-import { SendEmailOptionsMailerInterface } from '@/types/mailer/mailer.types.js'
-import { User } from '@/types/user/user.types.js'
+import { SendEmailOptionsMailerInterface } from '@/types/mailer.types.js'
+import { User } from '@/types/user.types.js'
 
 class MailerService {
   constructor(

@@ -20,6 +20,8 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
     ...(req.body && Object.keys(req.body).length > 0 && { body: req.body }),
   }
 
+  console.log(error)
+
   if (error.name === 'AuthenticationError') {
     logger.error(error.message, {
       context: {

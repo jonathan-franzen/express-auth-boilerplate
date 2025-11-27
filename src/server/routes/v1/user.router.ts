@@ -2,19 +2,25 @@ import { Request, Response, Router } from 'express'
 import asyncHandler from 'express-async-handler'
 
 import { userController } from '@/server/controllers/v1/user/index.js'
+import { authMiddleware } from '@/server/middlewares/auth.middleware.js'
 import { validateRequestMiddleware } from '@/server/middlewares/validate-request.middleware.js'
 import { verifyRolesMiddleware } from '@/server/middlewares/verify-roles.middleware.js'
-import { AuthenticatedRequest } from '@/types/api/request.types.js'
-import { UserRoles } from '@/types/user/user.types.js'
-import { changePasswordValidator } from '@/validators/user/change-password.validator.js'
-import { getUserValidator } from '@/validators/user/get-user.validator.js'
-import { getUsersValidator } from '@/validators/user/get-users.validator.js'
-import { updateSelfValidator } from '@/validators/user/update-self.validator.js'
+import { AuthenticatedRequest } from '@/types/api.types.js'
+import { UserRoles } from '@/types/user.types.js'
+import {
+  changePasswordValidator,
+  deleteUserValidator,
+  getUserByIdValidator,
+  listUsersValidator,
+  updateSelfValidator,
+  updateUserValidator,
+} from '@/validators/user.validators.js'
 
 const userRouter = Router()
 
 userRouter.get(
   '/me',
+  authMiddleware,
   asyncHandler((req: Request, res: Response) => {
     userController.getSelf(req as AuthenticatedRequest, res)
   })
@@ -22,6 +28,7 @@ userRouter.get(
 
 userRouter.patch(
   '/me',
+  authMiddleware,
   validateRequestMiddleware(updateSelfValidator),
   asyncHandler(async (req: Request, res: Response) => {
     await userController.updateSelf(req as AuthenticatedRequest, res)
@@ -30,6 +37,7 @@ userRouter.patch(
 
 userRouter.post(
   '/me/change-password',
+  authMiddleware,
   validateRequestMiddleware(changePasswordValidator),
   asyncHandler(async (req: Request, res: Response) => {
     await userController.changePassword(req as AuthenticatedRequest, res)
@@ -38,25 +46,28 @@ userRouter.post(
 
 userRouter.post(
   '/list',
-  validateRequestMiddleware(getUsersValidator),
+  authMiddleware,
+  validateRequestMiddleware(listUsersValidator),
   verifyRolesMiddleware(UserRoles.ADMIN),
   asyncHandler(async (req: Request, res: Response) => {
-    await userController.getUsers(req, res)
+    await userController.listUsers(req, res)
   })
 )
 
 userRouter.get(
-  '/:id',
-  validateRequestMiddleware(getUserValidator),
+  '/:userId',
+  authMiddleware,
+  validateRequestMiddleware(getUserByIdValidator),
   verifyRolesMiddleware(UserRoles.ADMIN),
   asyncHandler(async (req: Request, res: Response) => {
-    await userController.getUser(req, res)
+    await userController.getUserById(req, res)
   })
 )
 
 userRouter.patch(
-  '/:id',
-  validateRequestMiddleware(getUserValidator),
+  '/:userId',
+  authMiddleware,
+  validateRequestMiddleware(updateUserValidator),
   verifyRolesMiddleware(UserRoles.ADMIN),
   asyncHandler(async (req: Request, res: Response) => {
     await userController.updateUser(req, res)
@@ -64,8 +75,9 @@ userRouter.patch(
 )
 
 userRouter.delete(
-  '/:id',
-  validateRequestMiddleware(getUserValidator),
+  '/:userId',
+  authMiddleware,
+  validateRequestMiddleware(deleteUserValidator),
   verifyRolesMiddleware(UserRoles.ADMIN),
   asyncHandler(async (req: Request, res: Response) => {
     await userController.deleteUser(req as AuthenticatedRequest, res)

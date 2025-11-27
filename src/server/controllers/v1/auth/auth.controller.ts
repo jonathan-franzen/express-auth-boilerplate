@@ -18,29 +18,32 @@ import { UserService } from '@/server/services/user/user.service.js'
 import { UserTokenService } from '@/server/services/user-token/user-token.service.js'
 import {
   LoginRequestBody,
-  LoginRequestCookies,
+  LoginResponse,
   LoginResponseData,
-} from '@/types/auth/login.types.js'
-import { LogoutRequestCookies } from '@/types/auth/logout.types.js'
-import {
-  RefreshRequestCookies,
+  OptionalRefreshTokenCookies,
+  RefreshResponse,
   RefreshResponseData,
-} from '@/types/auth/refresh.types.js'
-import { RegisterRequestBody } from '@/types/auth/register.types.js'
-import { ResendVerifyEmailRequestBody } from '@/types/auth/resend-verify-email.types.js'
-import {
+  RefreshTokenCookies,
+  RegisterRequestBody,
+  RegisterResponse,
+  ResendVerifyEmailRequestBody,
+  ResendVerifyEmailResponse,
   ResetPasswordRequestBody,
-  ResetPasswordRequestParams,
-} from '@/types/auth/reset-password.types.js'
-import { SendResetPasswordEmailRequestBody } from '@/types/auth/send-reset-password-email.types.js'
-import { VerifyEmailRequestParams } from '@/types/auth/verify-email.types.js'
-import { VerifyResetPasswordTokenRequestParams } from '@/types/auth/verify-reset-password-token.types.js'
+  ResetPasswordResponse,
+  ResetPasswordTokenParams,
+  SendResetPasswordEmailRequestBody,
+  SendResetPasswordEmailResponse,
+  VerifyEmailResponse,
+  VerifyEmailTokenParams,
+  VerifyResetPasswordTokenParams,
+  VerifyResetPasswordTokenResponse,
+} from '@/types/auth.types.js'
 import {
   JwtDecodedRefreshToken,
   JwtDecodedResetPasswordToken,
   JwtDecodedVerifyEmailToken,
-} from '@/types/jwt/jwt.types.js'
-import { User } from '@/types/user/user.types.js'
+} from '@/types/jwt.types.js'
+import { User } from '@/types/user.types.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
@@ -153,11 +156,11 @@ class AuthController {
     return sendResponse<'data', User>(res, 201, {
       message: 'User successfully created.',
       data: createdUser,
-    })
+    } satisfies RegisterResponse)
   }
 
   async verifyEmail(req: Request, res: Response) {
-    const { verifyEmailToken } = req.params as VerifyEmailRequestParams
+    const { verifyEmailToken } = req.params as VerifyEmailTokenParams
 
     const [verifyEmailTokenError, decodedVerifyEmailToken] = await until(() =>
       this.jwtService.verifyToken<JwtDecodedVerifyEmailToken>(
@@ -187,7 +190,7 @@ class AuthController {
 
           return sendResponse<'message'>(res, 200, {
             message: 'Email already verified.',
-          })
+          } satisfies VerifyEmailResponse)
         }
       }
       throw verifyEmailTokenError
@@ -219,7 +222,7 @@ class AuthController {
 
       return sendResponse<'message'>(res, 200, {
         message: 'Email already verified.',
-      })
+      } satisfies VerifyEmailResponse)
     }
 
     await this.userService.updateUser(
@@ -231,7 +234,7 @@ class AuthController {
 
     return sendResponse<'message'>(res, 200, {
       message: 'Email successfully verified.',
-    })
+    } satisfies VerifyEmailResponse)
   }
 
   async resendVerifyEmail(req: Request, res: Response) {
@@ -242,13 +245,13 @@ class AuthController {
     if (!user) {
       return sendResponse<'message'>(res, 200, {
         message: 'Email successfully sent.',
-      })
+      } satisfies ResendVerifyEmailResponse)
     }
 
     if (user.emailVerifiedAt) {
       return sendResponse<'message'>(res, 200, {
         message: 'Email already verified.',
-      })
+      } satisfies ResendVerifyEmailResponse)
     }
 
     const verifyEmailToken = this.jwtService.signVerifyEmailToken(user.email)
@@ -262,12 +265,12 @@ class AuthController {
 
     return sendResponse<'message'>(res, 200, {
       message: 'Email successfully sent.',
-    })
+    } satisfies ResendVerifyEmailResponse)
   }
 
   async login(req: Request, res: Response) {
+    const { refreshToken } = req.cookies as OptionalRefreshTokenCookies
     const { email, password } = req.body as LoginRequestBody
-    const { refreshToken } = req.cookies as LoginRequestCookies
 
     const user = await this.userService.getUserWithValidatePassword({ email })
 
@@ -351,11 +354,11 @@ class AuthController {
     return sendResponse<'data', LoginResponseData>(res, 200, {
       message: 'Login successful.',
       data: { accessToken, user },
-    })
+    } satisfies LoginResponse)
   }
 
   async refresh(req: Request, res: Response) {
-    const { refreshToken } = req.cookies as RefreshRequestCookies
+    const { refreshToken } = req.cookies as RefreshTokenCookies
 
     const userToken = await this.userTokenService.getUserToken({
       token: refreshToken,
@@ -464,7 +467,7 @@ class AuthController {
     return sendResponse<'data', RefreshResponseData>(res, 200, {
       message: 'Refresh successful.',
       data: { accessToken },
-    })
+    } satisfies RefreshResponse)
   }
 
   async sendResetPasswordEmail(req: Request, res: Response) {
@@ -475,7 +478,7 @@ class AuthController {
     if (!user) {
       return sendResponse<'message'>(res, 200, {
         message: 'Email sent.',
-      })
+      } satisfies SendResetPasswordEmailResponse)
     }
 
     const resetPasswordToken = this.jwtService.signResetPasswordToken(
@@ -496,22 +499,21 @@ class AuthController {
 
     return sendResponse<'message'>(res, 200, {
       message: 'Email sent.',
-    })
+    } satisfies SendResetPasswordEmailResponse)
   }
 
   async verifyResetPasswordToken(req: Request, res: Response) {
-    const { resetPasswordToken } =
-      req.params as VerifyResetPasswordTokenRequestParams
+    const { resetPasswordToken } = req.params as VerifyResetPasswordTokenParams
 
     await this.handleVerifyResetPasswordToken(resetPasswordToken)
 
     return sendResponse<'message'>(res, 200, {
       message: 'Token is valid.',
-    })
+    } satisfies VerifyResetPasswordTokenResponse)
   }
 
   async resetPassword(req: Request, res: Response) {
-    const { resetPasswordToken } = req.params as ResetPasswordRequestParams
+    const { resetPasswordToken } = req.params as ResetPasswordTokenParams
     const { newPassword } = req.body as ResetPasswordRequestBody
 
     const email = await this.handleVerifyResetPasswordToken(resetPasswordToken)
@@ -529,11 +531,11 @@ class AuthController {
 
     return sendResponse<'message'>(res, 200, {
       message: 'Password successfully updated.',
-    })
+    } satisfies ResetPasswordResponse)
   }
 
   async logout(req: Request, res: Response) {
-    const { refreshToken } = req.cookies as LogoutRequestCookies
+    const { refreshToken } = req.cookies as RefreshTokenCookies
 
     const [error] = await until(() =>
       this.userTokenService.deleteUserToken({ token: refreshToken })

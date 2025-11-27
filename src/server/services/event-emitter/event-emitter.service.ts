@@ -1,7 +1,7 @@
 import EventEmitter from 'node:events'
 
 import { MailerService } from '@/server/services/mailer/mailer.service.js'
-import { SendEmailOptionsMailerInterface } from '@/types/mailer/mailer.types.js'
+import { SendEmailOptionsMailerInterface } from '@/types/mailer.types.js'
 
 class EventEmitterService extends EventEmitter {
   constructor(private readonly mailerService: MailerService) {
