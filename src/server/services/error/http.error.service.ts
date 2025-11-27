@@ -37,6 +37,13 @@ class HttpErrorService {
     return createError(418, 'Something went wrong')
   }
 
+  emailRequestsExceededError(ttl: number): HttpError<429> {
+    return createError(
+      429,
+      `Please wait ${ttl} seconds before requesting another email.`
+    )
+  }
+
   internalServerError(): HttpError<500> {
     return createError(500, 'Internal server error.')
   }

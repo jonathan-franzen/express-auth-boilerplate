@@ -17,4 +17,5 @@ export const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET as string
 
 // General
 export const FRONTEND_URL = env.FRONTEND_URL as string
+export const REDIS_URL = env.REDIS_URL as string
 export const MAILER_FROM = env.MAILER_FROM as string

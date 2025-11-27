@@ -9,10 +9,13 @@ import {
   REFRESH_TOKEN_SECRET,
 } from '@/constants/environment.constants.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
+import { httpErrorService } from '@/server/services/error/index.js'
 import { PrismaErrorService } from '@/server/services/error/prisma.error.service.js'
 import { EventEmitterService } from '@/server/services/event-emitter/event-emitter.service.js'
 import { JwtService } from '@/server/services/jwt/jwt.service.js'
 import { MailerService } from '@/server/services/mailer/mailer.service.js'
+import { redisService } from '@/server/services/redis/index.js'
+import { RedisService } from '@/server/services/redis/redis.service.js'
 import { ResetPasswordTokenService } from '@/server/services/reset-password-token/reset-password-token.service.js'
 import { UserService } from '@/server/services/user/user.service.js'
 import { UserTokenService } from '@/server/services/user-token/user-token.service.js'
@@ -49,6 +52,7 @@ import { sendResponse } from '@/utils/send-response.js'
 
 class AuthController {
   constructor(
+    private readonly redisService: RedisService,
     private readonly httpErrorService: HttpErrorService,
     private readonly prismaErrorService: PrismaErrorService,
     private readonly eventEmitterService: EventEmitterService,
@@ -254,6 +258,14 @@ class AuthController {
       } satisfies ResendVerifyEmailResponse)
     }
 
+    const key = `verify-email:${user.id}`
+
+    const setResult = await redisService.setIfNotExists(key, '1', 5 * 60)
+
+    if (!setResult) {
+      throw httpErrorService.emailRequestsExceededError(5 * 60)
+    }
+
     const verifyEmailToken = this.jwtService.signVerifyEmailToken(user.email)
 
     const emailOptions = this.mailerService.getVerifyEmailOptions(
@@ -359,6 +371,7 @@ class AuthController {
 
   async refresh(req: Request, res: Response) {
     const { refreshToken } = req.cookies as RefreshTokenCookies
+    console.log('req received:', refreshToken)
 
     const userToken = await this.userTokenService.getUserToken({
       token: refreshToken,
@@ -389,6 +402,8 @@ class AuthController {
 
       if (foundUser) {
         await this.userTokenService.deleteUserTokens({ userId: foundUser.id })
+
+        console.log('reuse attempt logged:', refreshToken)
 
         logger.alert({
           context: {
@@ -456,6 +471,8 @@ class AuthController {
       token: newRefreshToken,
       userId: userToken.userId,
     })
+
+    console.log('token stored:', newRefreshToken)
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
