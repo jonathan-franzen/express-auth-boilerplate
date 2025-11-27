@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
-export const orderValidator = z.enum(['asc', 'desc']).optional()
+import { OrderDirection } from '@/types/common.types.js'
+
+export const orderValidator = z.enum(OrderDirection).optional()
 
 export const paginationValidator = z.object({
   // Zero-based page index
