@@ -1,4 +1,5 @@
 import { ErrorRequestHandler } from 'express'
+import jwt from 'jsonwebtoken'
 import { ZodError } from 'zod'
 
 import {
@@ -8,74 +9,61 @@ import {
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
-const errorHandlerMiddleware: ErrorRequestHandler = (
-  error,
-  req,
-  res,
-  _next
-) => {
+const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
   const baseErrorKeys = {
     ...(req.method && { method: req.method }),
     ...(req.query && Object.keys(req.query).length > 0 && { query: req.query }),
     ...(req.body && Object.keys(req.body).length > 0 && { body: req.body }),
   }
 
-  if (error.name === 'AuthenticationError') {
-    logger.error(error.message, {
-      context: {
-        error: error.name,
-        stack: error.stack,
-        ...baseErrorKeys,
-      },
-    })
-
-    return sendResponse<'error'>(res, 401, {
-      message: error.message,
-      error: error.name,
-    })
+  if (err instanceof jwt.TokenExpiredError) {
+    err = httpErrorService.tokenExpiredError()
   }
 
-  if (error instanceof ZodError) {
-    const message =
-      error.issues.at(0)?.message ?? 'Request failed zod validation'
+  if (err instanceof jwt.JsonWebTokenError) {
+    err = httpErrorService.tokenInvalidError()
+  }
+
+  if (err instanceof ZodError) {
+    const message = err.issues.at(0)?.message ?? 'Request failed zod validation'
 
     logger.error(message, {
       context: {
-        error: error.name,
-        errors: error.issues,
+        error: err.name,
+        errors: err.issues,
         ...baseErrorKeys,
       },
     })
 
     return sendResponse<'error'>(res, 400, {
       message: message,
-      error: error.name,
+      error: err.name,
     })
   }
 
-  if (httpErrorService.isHttpError(error)) {
-    logger.error(error.message, {
+  if (httpErrorService.isHttpError(err)) {
+    logger.error(err.message, {
       context: {
-        error: error.name,
-        stack: error.stack,
+        error: err.name,
+        stack: err.stack,
         ...baseErrorKeys,
       },
     })
 
-    return sendResponse<'error'>(res, error.status, {
-      message: error.message,
-      error: error.name,
+    return sendResponse<'error'>(res, err.status, {
+      message: err.message,
+      error: err.name,
     })
   }
 
-  if (prismaErrorService.isPrismaError(error)) {
-    const { message, statusCode } = prismaErrorService.handlePrismaError(error)
+  if (prismaErrorService.isPrismaError(err)) {
+    const { message, statusCode } = prismaErrorService.handlePrismaError(err)
     const prismaError = 'PrismaError'
 
     logger.error(message, {
       context: {
         error: prismaError,
-        stack: error.stack,
+        stack: err.stack,
         ...baseErrorKeys,
       },
     })
@@ -86,18 +74,18 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
     })
   }
 
-  if (error instanceof Error) {
-    logger.error(error.message, {
+  if (err instanceof Error) {
+    logger.error(err.message, {
       context: {
-        error: error.name,
-        stack: error.stack,
+        error: err.name,
+        stack: err.stack,
         ...baseErrorKeys,
       },
     })
 
     return sendResponse<'error'>(res, 500, {
-      message: error.message,
-      error: error.name,
+      message: err.message,
+      error: err.name,
     })
   }
 
@@ -106,7 +94,7 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
   logger.error(internalServerError.message, {
     context: {
       error: internalServerError.name,
-      ...(error.stack && { stack: error.stack }),
+      ...(err.stack && { stack: err.stack }),
       ...baseErrorKeys,
     },
   })

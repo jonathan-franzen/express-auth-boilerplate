@@ -38,6 +38,10 @@ const loginBody = z.object({
   password: z.string().nonempty('Password is required.'),
 })
 
+const verifySessionBody = z.object({
+  accessToken: z.string().nonempty('Access token is required.'),
+})
+
 const sendResetPasswordEmailBody = z.object({
   email: z.email(),
 })
@@ -64,6 +68,11 @@ export const loginValidator = z.object({
 })
 
 export const refreshValidator = z.object({
+  cookies: refreshTokenCookies,
+})
+
+export const verifySessionValidator = z.object({
+  body: verifySessionBody,
   cookies: refreshTokenCookies,
 })
 

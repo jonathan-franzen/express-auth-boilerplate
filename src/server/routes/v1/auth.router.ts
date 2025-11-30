@@ -13,6 +13,7 @@ import {
   sendResetPasswordEmailValidator,
   verifyEmailValidator,
   verifyResetPasswordTokenValidator,
+  verifySessionValidator,
 } from '@/validators/auth.validators.js'
 
 const authRouter = Router()
@@ -54,6 +55,14 @@ authRouter.post(
   validateRequestMiddleware(refreshValidator),
   asyncHandler(async (req: Request, res: Response) => {
     await authController.refresh(req, res)
+  })
+)
+
+authRouter.post(
+  '/verify-session',
+  validateRequestMiddleware(verifySessionValidator),
+  asyncHandler(async (req: Request, res: Response) => {
+    await authController.verifySession(req, res)
   })
 )
 

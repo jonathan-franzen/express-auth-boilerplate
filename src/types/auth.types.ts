@@ -13,6 +13,7 @@ import {
   sendResetPasswordEmailValidator,
   verifyEmailTokenParams,
   verifyResetPasswordTokenParams,
+  verifySessionValidator,
 } from '@/validators/auth.validators.js'
 
 // Params
@@ -40,6 +41,10 @@ export type ResendVerifyEmailRequestBody = z.infer<
 
 export type LoginRequestBody = z.infer<typeof loginValidator>['body']
 
+export type VerifySessionRequestBody = z.infer<
+  typeof verifySessionValidator
+>['body']
+
 export type SendResetPasswordEmailRequestBody = z.infer<
   typeof sendResetPasswordEmailValidator
 >['body']
@@ -58,6 +63,10 @@ export interface RefreshResponseData {
   accessToken: string
 }
 
+export interface VerifySessionResponseData {
+  accessToken: string
+}
+
 // Response
 export interface RegisterResponse extends DataResponse<User> {}
 
@@ -68,6 +77,9 @@ export interface ResendVerifyEmailResponse extends MessageResponse {}
 export interface LoginResponse extends DataResponse<LoginResponseData> {}
 
 export interface RefreshResponse extends DataResponse<RefreshResponseData> {}
+
+export interface VerifySessionResponse
+  extends DataResponse<VerifySessionResponseData> {}
 
 export interface SendResetPasswordEmailResponse extends MessageResponse {}
 

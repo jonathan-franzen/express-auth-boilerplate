@@ -14,7 +14,6 @@ import { PrismaErrorService } from '@/server/services/error/prisma.error.service
 import { EventEmitterService } from '@/server/services/event-emitter/event-emitter.service.js'
 import { JwtService } from '@/server/services/jwt/jwt.service.js'
 import { MailerService } from '@/server/services/mailer/mailer.service.js'
-import { redisService } from '@/server/services/redis/index.js'
 import { RedisService } from '@/server/services/redis/redis.service.js'
 import { ResetPasswordTokenService } from '@/server/services/reset-password-token/reset-password-token.service.js'
 import { UserService } from '@/server/services/user/user.service.js'
@@ -40,13 +39,17 @@ import {
   VerifyEmailTokenParams,
   VerifyResetPasswordTokenParams,
   VerifyResetPasswordTokenResponse,
+  VerifySessionRequestBody,
+  VerifySessionResponse,
+  VerifySessionResponseData,
 } from '@/types/auth.types.js'
 import {
+  JwtDecodedAccessToken,
   JwtDecodedRefreshToken,
   JwtDecodedResetPasswordToken,
   JwtDecodedVerifyEmailToken,
 } from '@/types/jwt.types.js'
-import { User } from '@/types/user.types.js'
+import { User, UserRoles } from '@/types/user.types.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
@@ -64,16 +67,16 @@ class AuthController {
   ) {}
 
   private async handleVerifyResetPasswordToken(resetPasswordToken: string) {
-    const [resetPasswordTokenTokenError, decodedResetPasswordToken] =
-      await until(() =>
+    const [resetPasswordTokenError, decodedResetPasswordToken] = await until(
+      () =>
         this.jwtService.verifyToken<JwtDecodedResetPasswordToken>(
           resetPasswordToken,
           ACCESS_TOKEN_SECRET,
           'resetPassword'
         )
-      )
+    )
 
-    if (resetPasswordTokenTokenError) {
+    if (resetPasswordTokenError) {
       const [deleteTokenError] = await until(() =>
         this.resetPasswordTokenService.deleteResetPasswordToken({
           token: resetPasswordToken,
@@ -85,13 +88,13 @@ class AuthController {
         !this.prismaErrorService.isRecordNotExistError(deleteTokenError)
       ) {
         logger.alert({
-          context: { error: resetPasswordTokenTokenError },
+          context: { error: resetPasswordTokenError },
           message: 'Failed to delete invalid reset password token.',
         })
 
         throw deleteTokenError
       }
-      throw resetPasswordTokenTokenError
+      throw resetPasswordTokenError
     }
 
     const tokenExists =
@@ -100,7 +103,7 @@ class AuthController {
       })
 
     if (!tokenExists) {
-      throw this.httpErrorService.tokenExpiredError()
+      throw this.httpErrorService.tokenInvalidError()
     }
 
     const email = decodedResetPasswordToken.resetPassword.email
@@ -112,14 +115,121 @@ class AuthController {
         context: {
           email,
         },
-        message:
-          'Attempt to reset-password-token verification on non-existing user.',
+        message: 'Attempt to verify resetPasswordToken on non-existing user.',
       })
 
       throw this.httpErrorService.tokenInvalidError()
     }
 
     return email
+  }
+
+  private async handleRefresh(res: Response, refreshToken: string) {
+    const userToken = await this.userTokenService.getUserToken({
+      token: refreshToken,
+    })
+
+    if (!userToken) {
+      const [decodedRefreshTokenError, decodedRefreshToken] = await until(() =>
+        this.jwtService.verifyToken<JwtDecodedRefreshToken>(
+          refreshToken,
+          REFRESH_TOKEN_SECRET,
+          'email'
+        )
+      )
+
+      if (decodedRefreshTokenError) {
+        res.clearCookie('refreshToken', {
+          httpOnly: true,
+          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+          secure: APP_ENV === 'prod',
+        })
+
+        throw decodedRefreshTokenError
+      }
+
+      const foundUser = await this.userService.getUser({
+        email: decodedRefreshToken.email,
+      })
+
+      if (foundUser) {
+        await this.userTokenService.deleteUserTokens({ userId: foundUser.id })
+
+        logger.alert({
+          context: {
+            email: foundUser.email,
+          },
+          message: 'Attempt to reuse refresh token mitigated.',
+        })
+      }
+
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
+      })
+
+      throw this.httpErrorService.tokenInvalidError()
+    }
+
+    const [refreshTokenError, decodedRefreshToken] = await until(() =>
+      this.jwtService.verifyToken<JwtDecodedRefreshToken>(
+        refreshToken,
+        REFRESH_TOKEN_SECRET,
+        'email'
+      )
+    )
+
+    const [deleteRefreshTokenError] = await until(() =>
+      this.userTokenService.deleteUserToken({ token: refreshToken })
+    )
+
+    if (
+      deleteRefreshTokenError &&
+      !this.prismaErrorService.isRecordNotExistError(deleteRefreshTokenError)
+    ) {
+      logger.alert({
+        context: { error: deleteRefreshTokenError },
+        message: 'Failed to delete invalid/expired refresh token.',
+      })
+
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
+      })
+
+      throw this.httpErrorService.internalServerError()
+    }
+
+    if (refreshTokenError) {
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+        secure: APP_ENV === 'prod',
+      })
+
+      throw refreshTokenError
+    }
+
+    const email = decodedRefreshToken.email
+
+    const accessToken = this.jwtService.signAccessToken(userToken.userId, email)
+    const newRefreshToken = this.jwtService.signRefreshToken(email)
+
+    await this.userTokenService.createUserToken({
+      token: newRefreshToken,
+      userId: userToken.userId,
+    })
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      maxAge: REFRESH_TOKEN_LIFETIME * 1000,
+      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+      secure: APP_ENV === 'prod',
+    })
+
+    return { accessToken }
   }
 
   async register(req: Request, res: Response) {
@@ -144,6 +254,7 @@ class AuthController {
       firstName,
       lastName,
       password,
+      roles: [UserRoles.USER],
     })
 
     const verifyEmailToken = this.jwtService.signVerifyEmailToken(
@@ -258,11 +369,15 @@ class AuthController {
       } satisfies ResendVerifyEmailResponse)
     }
 
-    const key = `verify-email:${user.id}`
+    const redisKey = `verify-email:${user.id}`
 
-    const setResult = await redisService.setIfNotExists(key, '1', 5 * 60)
+    const redisRes = await this.redisService.setIfNotExists(
+      redisKey,
+      '1',
+      5 * 60
+    )
 
-    if (!setResult) {
+    if (!redisRes) {
       throw httpErrorService.emailRequestsExceededError(5 * 60)
     }
 
@@ -371,120 +486,43 @@ class AuthController {
 
   async refresh(req: Request, res: Response) {
     const { refreshToken } = req.cookies as RefreshTokenCookies
-    console.log('req received:', refreshToken)
 
-    const userToken = await this.userTokenService.getUserToken({
-      token: refreshToken,
-    })
-
-    if (!userToken) {
-      const [decodedRefreshTokenError, decodedRefreshToken] = await until(() =>
-        this.jwtService.verifyToken<JwtDecodedRefreshToken>(
-          refreshToken,
-          REFRESH_TOKEN_SECRET,
-          'email'
-        )
-      )
-
-      if (decodedRefreshTokenError) {
-        res.clearCookie('refreshToken', {
-          httpOnly: true,
-          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-          secure: APP_ENV === 'prod',
-        })
-
-        throw decodedRefreshTokenError
-      }
-
-      const foundUser = await this.userService.getUser({
-        email: decodedRefreshToken.email,
-      })
-
-      if (foundUser) {
-        await this.userTokenService.deleteUserTokens({ userId: foundUser.id })
-
-        console.log('reuse attempt logged:', refreshToken)
-
-        logger.alert({
-          context: {
-            email: foundUser.email,
-          },
-          message: 'Attempt to reuse refresh token mitigated.',
-        })
-      }
-
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
-      })
-
-      throw this.httpErrorService.tokenInvalidError()
-    }
-
-    const [refreshTokenTokenError, decodedRefreshToken] = await until(() =>
-      this.jwtService.verifyToken<JwtDecodedRefreshToken>(
-        refreshToken,
-        REFRESH_TOKEN_SECRET,
-        'email'
-      )
-    )
-
-    const [deleteRefreshTokenError] = await until(() =>
-      this.userTokenService.deleteUserToken({ token: refreshToken })
-    )
-
-    if (
-      deleteRefreshTokenError &&
-      !this.prismaErrorService.isRecordNotExistError(deleteRefreshTokenError)
-    ) {
-      logger.alert({
-        context: { error: deleteRefreshTokenError },
-        message: 'Failed to delete invalid/expired refresh token.',
-      })
-
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
-      })
-
-      throw this.httpErrorService.internalServerError()
-    }
-
-    if (refreshTokenTokenError) {
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
-      })
-
-      throw refreshTokenTokenError
-    }
-
-    const email = decodedRefreshToken.email
-
-    const accessToken = this.jwtService.signAccessToken(userToken.userId, email)
-    const newRefreshToken = this.jwtService.signRefreshToken(email)
-
-    await this.userTokenService.createUserToken({
-      token: newRefreshToken,
-      userId: userToken.userId,
-    })
-
-    console.log('token stored:', newRefreshToken)
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-      secure: APP_ENV === 'prod',
-    })
+    const { accessToken } = await this.handleRefresh(res, refreshToken)
 
     return sendResponse<'data', RefreshResponseData>(res, 200, {
       message: 'Refresh successful.',
       data: { accessToken },
     } satisfies RefreshResponse)
+  }
+
+  async verifySession(req: Request, res: Response) {
+    const { refreshToken } = req.cookies as RefreshTokenCookies
+    const { accessToken } = req.body as VerifySessionRequestBody
+
+    const [, decodedAccessToken] = await until(() =>
+      this.jwtService.verifyToken<JwtDecodedAccessToken>(
+        accessToken,
+        ACCESS_TOKEN_SECRET,
+        'userInfo'
+      )
+    )
+
+    if (
+      decodedAccessToken?.exp &&
+      decodedAccessToken.exp * 1000 - Date.now() > 30_000
+    ) {
+      return sendResponse<'empty'>(res, 204, undefined)
+    }
+
+    const { accessToken: newAccessToken } = await this.handleRefresh(
+      res,
+      refreshToken
+    )
+
+    return sendResponse<'data', VerifySessionResponseData>(res, 200, {
+      message: 'Session invalid. Refresh successful.',
+      data: { accessToken: newAccessToken },
+    } satisfies VerifySessionResponse)
   }
 
   async sendResetPasswordEmail(req: Request, res: Response) {
@@ -493,9 +531,26 @@ class AuthController {
     const user = await this.userService.getUser({ email })
 
     if (!user) {
+      logger.warning({
+        context: { email },
+        message: 'Attempted to send reset password email to non-existing user.',
+      })
+
       return sendResponse<'message'>(res, 200, {
         message: 'Email sent.',
       } satisfies SendResetPasswordEmailResponse)
+    }
+
+    const redisKey = `reset-password-email:${user.id}`
+
+    const redisRes = await this.redisService.setIfNotExists(
+      redisKey,
+      '1',
+      5 * 60
+    )
+
+    if (!redisRes) {
+      throw httpErrorService.emailRequestsExceededError(5 * 60)
     }
 
     const resetPasswordToken = this.jwtService.signResetPasswordToken(

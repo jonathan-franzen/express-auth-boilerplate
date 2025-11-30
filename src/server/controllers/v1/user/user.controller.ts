@@ -73,18 +73,18 @@ class UserController {
     } satisfies UpdateSelfResponse)
   }
 
-  async changePassword(req: AuthenticatedRequest, res: Response) {
+  async changePassword(req: Request, res: Response) {
     const { newPassword, password } = req.body as ChangePasswordRequestBody
 
-    // We need to fetch user again, since we need the validatePassword function that is not provided by passport.
+    // We need to fetch user again, since we need the validatePassword function that is not provided by auth middleware.
     const user = await this.userService.getUserWithValidatePassword({
-      id: req.user.id,
+      id: req.user?.id,
     })
 
     if (!user) {
       logger.alert({
         context: {
-          id: req.user.id,
+          id: req.user?.id,
         },
         message: 'Cannot find user when changing password.',
       })

@@ -8,7 +8,6 @@ import { Server } from 'http'
 
 import { corsOptionsConfig } from '@/config/cors-options.config.js'
 import expressRateLimitConfig from '@/config/express-rate-limit.config.js'
-import { passport } from '@/config/passport/index.js'
 import { CORRELATOR_HEADER_NAME } from '@/constants/app.constants.js'
 import { PORT } from '@/constants/environment.constants.js'
 import { errorHandlerMiddleware } from '@/server/middlewares/error-handler.middleware.js'
@@ -54,7 +53,6 @@ class AppServer {
     this.app.use(headerMiddleware)
     this.app.use(ipBlockerMiddleware)
     this.app.use(rateLimit(expressRateLimitConfig))
-    this.app.use(passport.getPassportInstance().initialize())
     this.app.use(appRouter)
     this.app.use(errorHandlerMiddleware)
     this.app.use((_req, res) => {

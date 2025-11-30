@@ -1,5 +1,5 @@
 import { until } from '@open-draft/until'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 import {
   ACCESS_TOKEN_LIFETIME,
@@ -20,10 +20,10 @@ class JwtService {
   private jwtVerify<T>(
     token: string,
     secret: string
-  ): Promise<T | string | null> {
+  ): Promise<(JwtPayload & T) | string | null> {
     return new Promise((resolve, reject) => {
       jwt.verify(token, secret, (err, decoded) =>
-        err ? reject(err) : resolve(decoded as T | string | null)
+        err ? reject(err) : resolve(decoded as (JwtPayload & T) | string | null)
       )
     })
   }
@@ -79,7 +79,7 @@ class JwtService {
     token: string,
     secret: string,
     key: keyof T
-  ): Promise<T> {
+  ): Promise<JwtPayload & T> {
     const [verifyError, verified] = await until(() =>
       this.jwtVerify<T>(token, secret)
     )
