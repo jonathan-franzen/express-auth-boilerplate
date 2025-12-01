@@ -14,6 +14,4 @@ const transport = nodemailer.createTransport(
 )
 
 const templatesPath: string = path.join(process.cwd(), 'src', 'email-templates')
-const mailerService = new MailerService(transport, templatesPath)
-
-export { mailerService }
+export const mailerService = new MailerService(transport, templatesPath)

@@ -9,7 +9,12 @@ import {
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
-const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
+export const errorHandlerMiddleware: ErrorRequestHandler = (
+  err,
+  req,
+  res,
+  _next
+) => {
   const baseErrorKeys = {
     ...(req.method && { method: req.method }),
     ...(req.query && Object.keys(req.query).length > 0 && { query: req.query }),
@@ -104,5 +109,3 @@ const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
     error: internalServerError.name,
   })
 }
-
-export { errorHandlerMiddleware }

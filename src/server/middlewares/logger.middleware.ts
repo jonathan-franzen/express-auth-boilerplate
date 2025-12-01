@@ -2,7 +2,11 @@ import { NextFunction, Request, Response } from 'express'
 
 import { logger, loggerAsyncStorage } from '@/utils/logger.js'
 
-const loggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const loggerMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const start = Date.now()
   logger.info('Incoming request')
 
@@ -24,5 +28,3 @@ const loggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
 
   return loggerAsyncStorage.run({ context }, () => next())
 }
-
-export { loggerMiddleware }

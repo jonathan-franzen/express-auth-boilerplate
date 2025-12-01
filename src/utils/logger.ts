@@ -6,7 +6,7 @@ import winston, { createLogger, format, transports } from 'winston'
 import { LOG_LEVEL } from '@/constants/environment.constants.js'
 
 const { printf, timestamp } = format
-const loggerAsyncStorage = new AsyncLocalStorage<{
+export const loggerAsyncStorage = new AsyncLocalStorage<{
   context?: Record<string, string>
 }>()
 
@@ -52,11 +52,9 @@ const logFormat = printf(({ context, extra, level, message }): string => {
   })
 })
 
-const logger = createLogger({
+export const logger = createLogger({
   format: format.combine(timestamp(), logFormat),
   level: LOG_LEVEL,
   levels: winston.config.syslog.levels,
   transports: [new transports.Console()],
 })
-
-export { logger, loggerAsyncStorage }

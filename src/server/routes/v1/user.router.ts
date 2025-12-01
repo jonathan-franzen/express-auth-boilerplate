@@ -16,7 +16,7 @@ import {
   updateUserValidator,
 } from '@/validators/user.validators.js'
 
-const userRouter = Router()
+export const userRouter = Router()
 
 userRouter.get(
   '/me',
@@ -83,5 +83,3 @@ userRouter.delete(
     await userController.deleteUser(req as AuthenticatedRequest, res)
   })
 )
-
-export { userRouter }

@@ -11,7 +11,7 @@ import { resetPasswordTokenService } from '@/server/services/reset-password-toke
 import { userService } from '@/server/services/user/index.js'
 import { userTokenService } from '@/server/services/user-token/index.js'
 
-const authController = new AuthController(
+export const authController = new AuthController(
   redisService,
   httpErrorService,
   prismaErrorService,
@@ -22,5 +22,3 @@ const authController = new AuthController(
   userTokenService,
   resetPasswordTokenService
 )
-
-export { authController }

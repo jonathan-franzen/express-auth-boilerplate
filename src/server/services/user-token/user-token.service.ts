@@ -1,9 +1,9 @@
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/config/prisma/prisma.config.js'
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import { prisma } from '@/server/prisma/prisma.js'
 
-class UserTokenService {
+export class UserTokenService {
   createUserToken(data: Prisma.UserTokenUncheckedCreateInput) {
     return prisma.userToken.create({
       data,
@@ -38,5 +38,3 @@ class UserTokenService {
     })
   }
 }
-
-export { UserTokenService }

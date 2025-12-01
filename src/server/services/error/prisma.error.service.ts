@@ -7,7 +7,7 @@ interface PrismaErrorResponse {
   statusCode: number
 }
 
-class PrismaErrorService {
+export class PrismaErrorService {
   isPrismaError(error: unknown): boolean {
     return (
       error instanceof Prisma.PrismaClientKnownRequestError ||
@@ -188,5 +188,3 @@ class PrismaErrorService {
     return { message: 'An unexpected error occurred', statusCode: 500 }
   }
 }
-
-export { PrismaErrorService }

@@ -5,11 +5,7 @@ import { resetPasswordTokenService } from '@/server/services/reset-password-toke
 import { userTokenService } from '@/server/services/user-token/index.js'
 import { logger } from '@/utils/logger.js'
 
-const deleteExpiredTokensDbCommand = new Command('db:delete-expired-tokens')
-  .description('Delete expired tokens in database')
-  .action(deleteExpiredTokens)
-
-async function deleteExpiredTokens(): Promise<void> {
+const deleteExpiredTokens = async () => {
   const [resetPasswordTokensError] = await until(() =>
     resetPasswordTokenService.deleteExpiredResetPasswordTokens()
   )
@@ -30,4 +26,8 @@ async function deleteExpiredTokens(): Promise<void> {
   logger.info('Tokens deleted successfully.')
 }
 
-export default deleteExpiredTokensDbCommand
+export const deleteExpiredTokensDbCommand = new Command(
+  'db:delete-expired-tokens'
+)
+  .description('Delete expired tokens in database')
+  .action(deleteExpiredTokens)

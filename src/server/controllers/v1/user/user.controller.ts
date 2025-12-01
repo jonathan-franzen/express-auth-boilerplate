@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 
 import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
 import { APP_ENV } from '@/constants/environment.constants.js'
+import { getNameSearchFilter } from '@/server/prisma/utils/get-name-search-filter.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { PrismaErrorService } from '@/server/services/error/prisma.error.service.js'
 import { JwtService } from '@/server/services/jwt/jwt.service.js'
@@ -25,11 +26,10 @@ import {
   User,
   UserIdParams,
 } from '@/types/user.types.js'
-import { getNameSearchFilter } from '@/utils/get-name-search-filter.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
-class UserController {
+export class UserController {
   constructor(
     private readonly httpErrorService: HttpErrorService,
     private readonly prismaErrorService: PrismaErrorService,
@@ -246,5 +246,3 @@ class UserController {
     return sendResponse<'empty'>(res, 204, undefined)
   }
 }
-
-export { UserController }

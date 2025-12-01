@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { z, ZodArray, ZodObject, ZodRawShape, ZodType, ZodUndefined } from 'zod'
 
-const validateRequestMiddleware =
+export const validateRequestMiddleware =
   (schema?: ZodObject) =>
   async (req: Request, _res?: Response, next?: NextFunction) => {
     try {
@@ -66,5 +66,3 @@ const validateRequestMiddleware =
       next?.(error)
     }
   }
-
-export { validateRequestMiddleware }

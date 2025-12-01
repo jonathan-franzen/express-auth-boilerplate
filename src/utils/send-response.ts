@@ -17,11 +17,11 @@ type PayloadVariantMap<T> = {
   error: ErrorResponse
 }
 
-export function sendResponse<K extends PayloadVariant = 'empty', T = never>(
+export const sendResponse = <K extends PayloadVariant = 'empty', T = never>(
   res: Response,
   status: number,
   payload: PayloadVariantMap<T>[K]
-): Response<PayloadVariantMap<T>[K]> {
+): Response<PayloadVariantMap<T>[K]> => {
   if (!payload) {
     return res.sendStatus(status)
   }

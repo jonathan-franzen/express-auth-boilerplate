@@ -3,9 +3,9 @@ import { NextFunction, Request, Response } from 'express'
 import { AuthenticatedRequest } from '@/types/api.types.js'
 import { UserRoles } from '@/types/user.types.js'
 
-function verifyRolesMiddleware(
+export const verifyRolesMiddleware = (
   ...allowedRoles: UserRoles[]
-): (req: Request, res: Response, next: NextFunction) => void {
+): ((req: Request, res: Response, next: NextFunction) => void) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!(req as AuthenticatedRequest).user?.roles) {
       res.status(403).json({ error: 'Unauthorized.' })
@@ -23,5 +23,3 @@ function verifyRolesMiddleware(
     return next()
   }
 }
-
-export { verifyRolesMiddleware }

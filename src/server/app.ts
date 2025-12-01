@@ -6,8 +6,8 @@ import { rateLimit } from 'express-rate-limit'
 import helmet from 'helmet'
 import { Server } from 'http'
 
-import { corsOptionsConfig } from '@/config/cors-options.config.js'
-import expressRateLimitConfig from '@/config/express-rate-limit.config.js'
+import { corsConfig } from '@/config/cors.config.js'
+import { expressRateLimitConfig } from '@/config/express-rate-limit.config.js'
 import { CORRELATOR_HEADER_NAME } from '@/constants/app.constants.js'
 import { PORT } from '@/constants/environment.constants.js'
 import { errorHandlerMiddleware } from '@/server/middlewares/error-handler.middleware.js'
@@ -16,8 +16,17 @@ import { ipBlockerMiddleware } from '@/server/middlewares/ip-blocker.middleware.
 import { loggerMiddleware } from '@/server/middlewares/logger.middleware.js'
 import { appRouter } from '@/server/routes/index.js'
 import { httpErrorService } from '@/server/services/error/index.js'
+import { User } from '@/types/user.types.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
+
+declare global {
+  namespace Express {
+    export interface Request {
+      user?: User
+    }
+  }
+}
 
 class AppServer {
   private server: Server | null = null
@@ -39,7 +48,7 @@ class AppServer {
   }
 
   private configureApp(): void {
-    this.app.use(cors(corsOptionsConfig))
+    this.app.use(cors(corsConfig))
     this.app.use(helmet())
     this.app.use(correlator({ header: CORRELATOR_HEADER_NAME }))
     this.app.use(loggerMiddleware)
@@ -104,6 +113,4 @@ class AppServer {
   }
 }
 
-const getAppServer = AppServer.getInstance
-
-export { getAppServer }
+export const getAppServer = AppServer.getInstance

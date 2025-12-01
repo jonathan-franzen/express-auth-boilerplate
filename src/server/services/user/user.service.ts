@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/config/prisma/prisma.config.js'
+import { prisma } from '@/server/prisma/prisma.js'
 
-class UserService {
+export class UserService {
   constructor() {}
 
   createUser(data: Prisma.UserCreateInput) {
@@ -61,5 +61,3 @@ class UserService {
     })
   }
 }
-
-export { UserService }

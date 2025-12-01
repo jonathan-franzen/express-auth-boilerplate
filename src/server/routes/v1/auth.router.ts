@@ -16,7 +16,7 @@ import {
   verifySessionValidator,
 } from '@/validators/auth.validators.js'
 
-const authRouter = Router()
+export const authRouter = Router()
 
 authRouter.post(
   '/register',
@@ -97,5 +97,3 @@ authRouter.delete(
     await authController.logout(req, res)
   })
 )
-
-export { authRouter }

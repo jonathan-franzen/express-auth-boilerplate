@@ -10,7 +10,7 @@ import UserGetPayload = Prisma.UserGetPayload
 import { SendEmailOptionsMailerInterface } from '@/types/mailer.types.js'
 import { User } from '@/types/user.types.js'
 
-class MailerService {
+export class MailerService {
   constructor(
     private readonly mailer: Transporter,
     private readonly templatesPath: string
@@ -85,5 +85,3 @@ class MailerService {
     }
   }
 }
-
-export { MailerService }

@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import dbCommands from '@/commands/db/index.js'
+import { dbCommands } from '@/commands/db/index.js'
 
 export const commander = new Command()
 

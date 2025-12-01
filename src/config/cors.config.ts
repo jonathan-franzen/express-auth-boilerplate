@@ -3,7 +3,7 @@ import { CorsOptions } from 'cors'
 import { FRONTEND_URL } from '@/constants/environment.constants.js'
 import { logger } from '@/utils/logger.js'
 
-const corsOptionsConfig: CorsOptions = {
+export const corsConfig: CorsOptions = {
   origin: (
     origin: string | undefined,
     callback: (err: Error | null, origin?: boolean) => void
@@ -27,5 +27,3 @@ const corsOptionsConfig: CorsOptions = {
   credentials: true, // Allow credentials (cookies, auth headers)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'QUERY', 'OPTIONS'],
 }
-
-export { corsOptionsConfig }

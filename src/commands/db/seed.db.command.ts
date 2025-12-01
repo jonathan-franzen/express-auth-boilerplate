@@ -6,25 +6,9 @@ import { logger } from '@/utils/logger.js'
 
 import UserCreateInput = Prisma.UserCreateInput
 import { userService } from '@/server/services/user/index.js'
-import { User, UserRoles } from '@/types/user.types.js'
+import { UserRoles } from '@/types/user.types.js'
 
-const seedDbCommand = new Command('db:seed')
-  .description('Init database')
-  .action(seed)
-
-async function createUser(userCreateInput: UserCreateInput): Promise<void> {
-  const user = {
-    ...userCreateInput,
-    emailVerifiedAt: new Date(Date.now()),
-  }
-
-  await userService.upsertUser({ ...user }, { email: user.email }, { ...user })
-}
-
-function getUsers(): (Omit<
-  User,
-  'createdAt' | 'emailVerifiedAt' | 'id' | 'updatedAt'
-> & { password: string })[] {
+const getUsers = () => {
   return [
     {
       email: 'admin@email.com',
@@ -43,7 +27,16 @@ function getUsers(): (Omit<
   ]
 }
 
-async function seed(): Promise<void> {
+const createUser = async (userCreateInput: UserCreateInput) => {
+  const user = {
+    ...userCreateInput,
+    emailVerifiedAt: new Date(Date.now()),
+  }
+
+  await userService.upsertUser({ ...user }, { email: user.email }, { ...user })
+}
+
+const seed = async () => {
   const users = getUsers()
 
   const [error] = await until(() =>
@@ -58,4 +51,6 @@ async function seed(): Promise<void> {
   logger.info('Seeding completed successfully.')
 }
 
-export default seedDbCommand
+export const seedDbCommand = new Command('db:seed')
+  .description('Init database')
+  .action(seed)

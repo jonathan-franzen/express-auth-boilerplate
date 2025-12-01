@@ -1,9 +1,9 @@
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/config/prisma/prisma.config.js'
 import { RESET_PASSWORD_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import { prisma } from '@/server/prisma/prisma.js'
 
-class ResetPasswordTokenService {
+export class ResetPasswordTokenService {
   upsertResetPasswordToken(token: string, userId: string) {
     return prisma.resetPasswordToken.upsert({
       create: {
@@ -41,5 +41,3 @@ class ResetPasswordTokenService {
     })
   }
 }
-
-export { ResetPasswordTokenService }

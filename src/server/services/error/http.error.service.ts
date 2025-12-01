@@ -1,6 +1,6 @@
 import createError, { HttpError } from 'http-errors'
 
-class HttpErrorService {
+export class HttpErrorService {
   isHttpError(err: HttpError) {
     return createError.isHttpError(err)
   }
@@ -48,5 +48,3 @@ class HttpErrorService {
     return createError(500, 'Internal server error.')
   }
 }
-
-export { HttpErrorService }

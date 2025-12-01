@@ -53,7 +53,7 @@ import { User, UserRoles } from '@/types/user.types.js'
 import { logger } from '@/utils/logger.js'
 import { sendResponse } from '@/utils/send-response.js'
 
-class AuthController {
+export class AuthController {
   constructor(
     private readonly redisService: RedisService,
     private readonly httpErrorService: HttpErrorService,
@@ -629,5 +629,3 @@ class AuthController {
     return sendResponse<'empty'>(res, 204, undefined)
   }
 }
-
-export { AuthController }

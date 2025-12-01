@@ -4,7 +4,7 @@ import { httpErrorService } from '@/server/services/error/index.js'
 
 const IP_BLOCKLIST = ['']
 
-const ipBlockerMiddleware = async (
+export const ipBlockerMiddleware = async (
   req: Request,
   _res: Response,
   next: NextFunction
@@ -17,5 +17,3 @@ const ipBlockerMiddleware = async (
 
   next()
 }
-
-export { ipBlockerMiddleware }

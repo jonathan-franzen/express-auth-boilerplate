@@ -14,7 +14,7 @@ import {
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { logger } from '@/utils/logger.js'
 
-class JwtService {
+export class JwtService {
   constructor(private readonly httpErrorService: HttpErrorService) {}
 
   private jwtVerify<T>(
@@ -105,5 +105,3 @@ class JwtService {
     throw this.httpErrorService.tokenInvalidError()
   }
 }
-
-export { JwtService }
