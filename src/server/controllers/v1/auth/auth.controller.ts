@@ -2,7 +2,10 @@ import { until } from '@open-draft/until'
 import bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
 
-import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import {
+  ACCESS_TOKEN_LIFETIME,
+  REFRESH_TOKEN_LIFETIME,
+} from '@/constants/auth.constants.js'
 import {
   ACCESS_TOKEN_SECRET,
   APP_ENV,
@@ -509,7 +512,8 @@ export class AuthController {
 
     if (
       decodedAccessToken?.exp &&
-      decodedAccessToken.exp * 1000 - Date.now() > 30_000
+      decodedAccessToken.exp * 1000 - Date.now() >
+        (ACCESS_TOKEN_LIFETIME * 1000) / 2
     ) {
       return sendResponse<'empty'>(res, 204, undefined)
     }
