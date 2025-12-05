@@ -16,6 +16,16 @@ export class UserTokenService {
     })
   }
 
+  updateUserToken(
+    where: Prisma.UserTokenWhereUniqueInput,
+    data: Prisma.UserTokenUncheckedUpdateInput
+  ) {
+    return prisma.userToken.update({
+      data,
+      where,
+    })
+  }
+
   deleteUserToken(where: Prisma.UserTokenWhereUniqueInput) {
     return prisma.userToken.delete({
       where,

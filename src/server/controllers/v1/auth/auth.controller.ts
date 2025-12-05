@@ -132,7 +132,10 @@ export class AuthController {
       token: refreshToken,
     })
 
-    if (!userToken) {
+    if (
+      !userToken ||
+      (userToken.usedAt && userToken.usedAt.getTime() < Date.now() - 15_000)
+    ) {
       const [decodedRefreshTokenError, decodedRefreshToken] = await until(() =>
         this.jwtService.verifyToken<JwtDecodedRefreshToken>(
           refreshToken,
@@ -183,26 +186,33 @@ export class AuthController {
       )
     )
 
-    const [deleteRefreshTokenError] = await until(() =>
-      this.userTokenService.deleteUserToken({ token: refreshToken })
-    )
+    if (!userToken.usedAt) {
+      const [deprecateRefreshTokenError] = await until(() =>
+        this.userTokenService.updateUserToken(
+          { token: refreshToken },
+          { usedAt: new Date() }
+        )
+      )
 
-    if (
-      deleteRefreshTokenError &&
-      !this.prismaErrorService.isRecordNotExistError(deleteRefreshTokenError)
-    ) {
-      logger.alert({
-        context: { error: deleteRefreshTokenError },
-        message: 'Failed to delete invalid/expired refresh token.',
-      })
+      if (
+        deprecateRefreshTokenError &&
+        !this.prismaErrorService.isRecordNotExistError(
+          deprecateRefreshTokenError
+        )
+      ) {
+        logger.alert({
+          context: { error: deprecateRefreshTokenError },
+          message: 'Failed to deprecate invalid/expired refresh token.',
+        })
 
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
-      })
+        res.clearCookie('refreshToken', {
+          httpOnly: true,
+          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
+          secure: APP_ENV === 'prod',
+        })
 
-      throw this.httpErrorService.internalServerError()
+        throw this.httpErrorService.internalServerError()
+      }
     }
 
     if (refreshTokenError) {

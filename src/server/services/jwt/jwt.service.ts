@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import { until } from '@open-draft/until'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
@@ -42,7 +44,7 @@ export class JwtService {
   }
 
   signRefreshToken(email: string): string {
-    return jwt.sign({ email }, REFRESH_TOKEN_SECRET, {
+    return jwt.sign({ email, jti: randomUUID() }, REFRESH_TOKEN_SECRET, {
       expiresIn: REFRESH_TOKEN_LIFETIME,
     })
   }
