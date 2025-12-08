@@ -1,7 +1,7 @@
 import { until } from '@open-draft/until'
 import { NextFunction, Request, Response } from 'express'
 
-import { ACCESS_TOKEN_SECRET } from '@/constants/environment.constants.js'
+import { ACCESS_TOKEN_SECRET } from '@/config/env.config.js'
 import { httpErrorService } from '@/server/services/error/index.js'
 import { jwtService } from '@/server/services/jwt/index.js'
 import { userService } from '@/server/services/user/index.js'

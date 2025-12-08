@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import { REFRESH_TOKEN_LIFETIME } from '@/config/app.config.js'
 import { prisma } from '@/server/prisma/prisma.js'
 
 export class UserTokenService {
@@ -41,9 +41,19 @@ export class UserTokenService {
   deleteExpiredUserTokens() {
     return prisma.userToken.deleteMany({
       where: {
-        updatedAt: {
-          lt: new Date(Date.now() - REFRESH_TOKEN_LIFETIME),
-        },
+        OR: [
+          {
+            createdAt: {
+              lt: new Date(Date.now() - REFRESH_TOKEN_LIFETIME),
+            },
+          },
+          {
+            usedAt: {
+              not: null,
+              lt: new Date(Date.now() - 15_000),
+            },
+          },
+        ],
       },
     })
   }

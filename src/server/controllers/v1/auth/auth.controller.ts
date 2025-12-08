@@ -5,12 +5,12 @@ import { Request, Response } from 'express'
 import {
   ACCESS_TOKEN_LIFETIME,
   REFRESH_TOKEN_LIFETIME,
-} from '@/constants/auth.constants.js'
+} from '@/config/app.config.js'
 import {
   ACCESS_TOKEN_SECRET,
-  APP_ENV,
+  NODE_ENV,
   REFRESH_TOKEN_SECRET,
-} from '@/constants/environment.constants.js'
+} from '@/config/env.config.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { httpErrorService } from '@/server/services/error/index.js'
 import { PrismaErrorService } from '@/server/services/error/prisma.error.service.js'
@@ -147,8 +147,8 @@ export class AuthController {
       if (decodedRefreshTokenError) {
         res.clearCookie('refreshToken', {
           httpOnly: true,
-          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-          secure: APP_ENV === 'prod',
+          sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+          secure: NODE_ENV === 'prod',
         })
 
         throw decodedRefreshTokenError
@@ -171,8 +171,8 @@ export class AuthController {
 
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
+        sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+        secure: NODE_ENV === 'prod',
       })
 
       throw this.httpErrorService.tokenInvalidError()
@@ -207,8 +207,8 @@ export class AuthController {
 
         res.clearCookie('refreshToken', {
           httpOnly: true,
-          sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-          secure: APP_ENV === 'prod',
+          sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+          secure: NODE_ENV === 'prod',
         })
 
         throw this.httpErrorService.internalServerError()
@@ -218,8 +218,8 @@ export class AuthController {
     if (refreshTokenError) {
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-        secure: APP_ENV === 'prod',
+        sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+        secure: NODE_ENV === 'prod',
       })
 
       throw refreshTokenError
@@ -238,8 +238,8 @@ export class AuthController {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-      secure: APP_ENV === 'prod',
+      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+      secure: NODE_ENV === 'prod',
     })
 
     return { accessToken }
@@ -487,8 +487,8 @@ export class AuthController {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-      secure: APP_ENV === 'prod',
+      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+      secure: NODE_ENV === 'prod',
     })
 
     return sendResponse<'data', LoginResponseData>(res, 200, {
@@ -636,8 +636,8 @@ export class AuthController {
 
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-      secure: APP_ENV === 'prod',
+      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+      secure: NODE_ENV === 'prod',
     })
 
     return sendResponse<'empty'>(res, 204, undefined)

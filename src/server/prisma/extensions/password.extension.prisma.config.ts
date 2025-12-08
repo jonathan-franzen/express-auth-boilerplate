@@ -30,6 +30,12 @@ export const passwordExtension = Prisma.defineExtension({
         args,
         query,
       }): Promise<PayloadToResult<Prisma.$UserPayload>> {
+        if (args.create.password) {
+          args.create.password = await bcrypt.hash(
+            args.create.password as string,
+            10
+          )
+        }
         if (args.update.password) {
           args.update.password = await bcrypt.hash(
             args.update.password as string,

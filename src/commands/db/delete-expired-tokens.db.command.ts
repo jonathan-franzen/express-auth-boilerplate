@@ -5,7 +5,7 @@ import { resetPasswordTokenService } from '@/server/services/reset-password-toke
 import { userTokenService } from '@/server/services/user-token/index.js'
 import { logger } from '@/utils/logger.js'
 
-const deleteExpiredTokens = async () => {
+export const deleteExpiredTokens = async () => {
   const [resetPasswordTokensError] = await until(() =>
     resetPasswordTokenService.deleteExpiredResetPasswordTokens()
   )

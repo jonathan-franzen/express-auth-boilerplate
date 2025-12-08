@@ -8,11 +8,11 @@ import {
   REFRESH_TOKEN_LIFETIME,
   RESET_PASSWORD_TOKEN_LIFETIME,
   VERIFY_EMAIL_TOKEN_LIFETIME,
-} from '@/constants/auth.constants.js'
+} from '@/config/app.config.js'
 import {
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
-} from '@/constants/environment.constants.js'
+} from '@/config/env.config.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { logger } from '@/utils/logger.js'
 

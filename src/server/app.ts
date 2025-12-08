@@ -6,10 +6,10 @@ import { rateLimit } from 'express-rate-limit'
 import helmet from 'helmet'
 import { Server } from 'http'
 
+import { CORRELATOR_HEADER } from '@/config/app.config.js'
 import { corsConfig } from '@/config/cors.config.js'
+import { PORT } from '@/config/env.config.js'
 import { expressRateLimitConfig } from '@/config/express-rate-limit.config.js'
-import { CORRELATOR_HEADER_NAME } from '@/constants/app.constants.js'
-import { PORT } from '@/constants/environment.constants.js'
 import { errorHandlerMiddleware } from '@/server/middlewares/error-handler.middleware.js'
 import { headerMiddleware } from '@/server/middlewares/header.middleware.js'
 import { ipBlockerMiddleware } from '@/server/middlewares/ip-blocker.middleware.js'
@@ -50,7 +50,7 @@ class AppServer {
   private configureApp(): void {
     this.app.use(cors(corsConfig))
     this.app.use(helmet())
-    this.app.use(correlator({ header: CORRELATOR_HEADER_NAME }))
+    this.app.use(correlator({ header: CORRELATOR_HEADER }))
     this.app.use(loggerMiddleware)
     this.app.use(cookieParser())
     this.app.use(

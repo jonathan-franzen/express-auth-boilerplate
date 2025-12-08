@@ -2,11 +2,11 @@ import path from 'node:path'
 
 import nodemailer from 'nodemailer'
 
-import { APP_ENV } from '@/constants/environment.constants.js'
+import { NODE_ENV } from '@/config/env.config.js'
 import { MailerService } from '@/server/services/mailer/mailer.service.js'
 
 const transport = nodemailer.createTransport(
-  APP_ENV === 'dev'
+  NODE_ENV === 'dev'
     ? {
         port: 1025,
       }

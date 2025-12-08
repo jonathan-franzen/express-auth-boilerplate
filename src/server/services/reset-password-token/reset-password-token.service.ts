@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-import { RESET_PASSWORD_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
+import { RESET_PASSWORD_TOKEN_LIFETIME } from '@/config/app.config.js'
 import { prisma } from '@/server/prisma/prisma.js'
 
 export class ResetPasswordTokenService {
@@ -34,7 +34,7 @@ export class ResetPasswordTokenService {
   deleteExpiredResetPasswordTokens() {
     return prisma.resetPasswordToken.deleteMany({
       where: {
-        updatedAt: {
+        createdAt: {
           lt: new Date(Date.now() - RESET_PASSWORD_TOKEN_LIFETIME),
         },
       },

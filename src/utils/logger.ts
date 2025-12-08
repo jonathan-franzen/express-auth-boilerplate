@@ -3,7 +3,7 @@ import * as os from 'node:os'
 
 import winston, { createLogger, format, transports } from 'winston'
 
-import { LOG_LEVEL } from '@/constants/environment.constants.js'
+import { LOG_LEVEL } from '@/config/env.config.js'
 
 const { printf, timestamp } = format
 export const loggerAsyncStorage = new AsyncLocalStorage<{
@@ -11,14 +11,14 @@ export const loggerAsyncStorage = new AsyncLocalStorage<{
 }>()
 
 const monologLevels = {
-  alert: 550,
-  critical: 500,
   debug: 100,
-  emergency: 600,
-  error: 400,
   info: 200,
   notice: 250,
   warning: 300,
+  error: 400,
+  critical: 500,
+  alert: 550,
+  emergency: 600,
 }
 
 const logFormat = printf(({ context, extra, level, message }): string => {

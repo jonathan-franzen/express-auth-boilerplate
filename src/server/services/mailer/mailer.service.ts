@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client'
 import { Transporter } from 'nodemailer'
 import Twig from 'twig'
 
-import { FRONTEND_URL, MAILER_FROM } from '@/constants/environment.constants.js'
+import { FRONTEND_URL, MAILER_FROM } from '@/config/env.config.js'
 
 import UserGetPayload = Prisma.UserGetPayload
 import { SendEmailOptionsMailerInterface } from '@/types/mailer.types.js'

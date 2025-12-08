@@ -1,6 +1,6 @@
 import { CorsOptions } from 'cors'
 
-import { FRONTEND_URL } from '@/constants/environment.constants.js'
+import { FRONTEND_URL } from '@/config/env.config.js'
 import { logger } from '@/utils/logger.js'
 
 export const corsConfig: CorsOptions = {

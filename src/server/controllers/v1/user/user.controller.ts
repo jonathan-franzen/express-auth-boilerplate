@@ -2,8 +2,8 @@ import { until } from '@open-draft/until'
 import { Prisma } from '@prisma/client'
 import { Request, Response } from 'express'
 
-import { REFRESH_TOKEN_LIFETIME } from '@/constants/auth.constants.js'
-import { APP_ENV } from '@/constants/environment.constants.js'
+import { REFRESH_TOKEN_LIFETIME } from '@/config/app.config.js'
+import { NODE_ENV } from '@/config/env.config.js'
 import { getNameSearchFilter } from '@/server/prisma/utils/get-name-search-filter.js'
 import { HttpErrorService } from '@/server/services/error/http.error.service.js'
 import { PrismaErrorService } from '@/server/services/error/prisma.error.service.js'
@@ -125,8 +125,8 @@ export class UserController {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_LIFETIME * 1000,
-      sameSite: APP_ENV === 'prod' ? 'none' : 'lax',
-      secure: APP_ENV === 'prod',
+      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+      secure: NODE_ENV === 'prod',
     })
 
     return sendResponse<'data', ChangePasswordResponseData>(res, 200, {
