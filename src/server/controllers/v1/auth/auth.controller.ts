@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { until } from '@open-draft/until'
 import bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
@@ -69,6 +71,14 @@ export class AuthController {
     private readonly resetPasswordTokenService: ResetPasswordTokenService
   ) {}
 
+  private clearRefreshCookie(res: Response) {
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
+      secure: NODE_ENV === 'prod',
+    })
+  }
+
   private async handleVerifyResetPasswordToken(resetPasswordToken: string) {
     const [resetPasswordTokenError, decodedResetPasswordToken] = await until(
       () =>
@@ -128,14 +138,17 @@ export class AuthController {
   }
 
   private async handleRefresh(res: Response, refreshToken: string) {
+    const refreshHash = createHash('sha256').update(refreshToken).digest('hex')
+
+    const redisKey = `refresh-grace:${refreshHash}`
+
+    const redisRes = await this.redisService.get(redisKey)
+
     const userToken = await this.userTokenService.getUserToken({
       token: refreshToken,
     })
 
-    if (
-      !userToken ||
-      (userToken.usedAt && userToken.usedAt.getTime() < Date.now() - 15_000)
-    ) {
+    if (!userToken && !redisRes) {
       const [decodedRefreshTokenError, decodedRefreshToken] = await until(() =>
         this.jwtService.verifyToken<JwtDecodedRefreshToken>(
           refreshToken,
@@ -145,11 +158,7 @@ export class AuthController {
       )
 
       if (decodedRefreshTokenError) {
-        res.clearCookie('refreshToken', {
-          httpOnly: true,
-          sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
-          secure: NODE_ENV === 'prod',
-        })
+        this.clearRefreshCookie(res)
 
         throw decodedRefreshTokenError
       }
@@ -169,11 +178,7 @@ export class AuthController {
         })
       }
 
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
-        secure: NODE_ENV === 'prod',
-      })
+      this.clearRefreshCookie(res)
 
       throw this.httpErrorService.tokenInvalidError()
     }
@@ -186,54 +191,63 @@ export class AuthController {
       )
     )
 
-    if (!userToken.usedAt) {
-      const [deprecateRefreshTokenError] = await until(() =>
-        this.userTokenService.updateUserToken(
-          { token: refreshToken },
-          { usedAt: new Date() }
-        )
+    if (userToken) {
+      const [deleteRefreshTokenError] = await until(() =>
+        this.userTokenService.deleteUserToken({ token: refreshToken })
       )
 
       if (
-        deprecateRefreshTokenError &&
-        !this.prismaErrorService.isRecordNotExistError(
-          deprecateRefreshTokenError
-        )
+        deleteRefreshTokenError &&
+        !this.prismaErrorService.isRecordNotExistError(deleteRefreshTokenError)
       ) {
         logger.alert({
-          context: { error: deprecateRefreshTokenError },
-          message: 'Failed to deprecate invalid/expired refresh token.',
+          context: { error: deleteRefreshTokenError },
+          message: 'Failed to delete invalid/expired refresh token.',
         })
 
-        res.clearCookie('refreshToken', {
-          httpOnly: true,
-          sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
-          secure: NODE_ENV === 'prod',
-        })
+        this.clearRefreshCookie(res)
 
         throw this.httpErrorService.internalServerError()
       }
     }
 
     if (refreshTokenError) {
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
-        secure: NODE_ENV === 'prod',
-      })
+      this.clearRefreshCookie(res)
 
       throw refreshTokenError
     }
 
     const email = decodedRefreshToken.email
 
-    const accessToken = this.jwtService.signAccessToken(userToken.userId, email)
-    const newRefreshToken = this.jwtService.signRefreshToken(email)
+    let accessToken: string
+    let newRefreshToken: string
 
-    await this.userTokenService.createUserToken({
-      token: newRefreshToken,
-      userId: userToken.userId,
-    })
+    if (userToken) {
+      accessToken = this.jwtService.signAccessToken(userToken.userId, email)
+      newRefreshToken = this.jwtService.signRefreshToken(email)
+
+      await this.userTokenService.createUserToken({
+        token: newRefreshToken,
+        userId: userToken.userId,
+      })
+
+      await this.redisService.setIfNotExists(
+        redisKey,
+        `${newRefreshToken}:${accessToken}`,
+        15
+      )
+    } else {
+      const [redisRefreshToken, redisAccessToken] = (redisRes ?? '').split(':')
+
+      if (!redisRefreshToken || !redisAccessToken) {
+        this.clearRefreshCookie(res)
+
+        throw this.httpErrorService.tokenInvalidError()
+      }
+
+      accessToken = redisAccessToken
+      newRefreshToken = redisRefreshToken
+    }
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
@@ -634,11 +648,7 @@ export class AuthController {
       })
     }
 
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      sameSite: NODE_ENV === 'prod' ? 'none' : 'lax',
-      secure: NODE_ENV === 'prod',
-    })
+    this.clearRefreshCookie(res)
 
     return sendResponse<'empty'>(res, 204, undefined)
   }
