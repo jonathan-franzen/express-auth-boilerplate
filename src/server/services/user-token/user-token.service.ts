@@ -41,19 +41,9 @@ export class UserTokenService {
   deleteExpiredUserTokens() {
     return prisma.userToken.deleteMany({
       where: {
-        OR: [
-          {
-            createdAt: {
-              lt: new Date(Date.now() - REFRESH_TOKEN_LIFETIME),
-            },
-          },
-          {
-            usedAt: {
-              not: null,
-              lt: new Date(Date.now() - 15_000),
-            },
-          },
-        ],
+        createdAt: {
+          lt: new Date(Date.now() - REFRESH_TOKEN_LIFETIME),
+        },
       },
     })
   }
