@@ -295,6 +295,10 @@ export class AuthController {
 
     this.eventEmitterService.sendEmail(emailOptions)
 
+    const redisKey = `verify-email:${createdUser.id}`
+
+    await this.redisService.setIfNotExists(redisKey, '1', 5 * 60)
+
     return sendResponse<'data', User>(res, 201, {
       message: 'User successfully created.',
       data: createdUser,
